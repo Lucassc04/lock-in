@@ -1,9 +1,6 @@
 package lucas.lockIn.lockIn_backend.workout;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,5 +12,12 @@ public class Workout {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
-    private LocalDateTime dateTime;
+    @ManyToOne
+    private TemplateWorkout templateWorkout;
+
+    private LocalDateTime finishTime;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }
