@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: lockIn-backend
+  profiles:
+    active: dev
+
+server:
+  port: 8080
