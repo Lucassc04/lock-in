@@ -1,0 +1,46 @@
+package lucas.lockIn.lockIn_backend.workout.entity;
+
+public enum Muscle {
+    //CHEST
+    UPPER_CHEST,
+    LOWER_CHEST,
+    MIDDLE_CHEST,
+
+    //BACK
+    TRAPEZIUS_UPPER_BACK,
+    RHOMBOIDS_UPPER_BACK,
+    TERES_MAJOR_UPPER_BACK,
+    LATS,
+
+    //SHOULDER
+    ANTERIOR_DELTS,
+    LATERAL_DELTS,
+    POSTERIOR_DELTS,
+
+    //ARMS
+    LONG_HEAD_BICEPS,
+    SHORT_HEAD_BICEPS,
+    BRACHIALIS,
+    FOREARMS,
+
+    LONG_HEAD_TRICEPS,
+    SHORT_HEAD_TRICEPS,
+    MEDIAL_HEAD_TRICEPS,
+
+    //CORE
+    ABS,
+    OBLIQUES,
+
+    //LOWER BODY
+    //GLUTES
+    MAXIMUS_GLUTES,
+    MEDIUS_GLUTES,
+    MINIMUS_GLUTES,
+
+    RECTUS_FEMORIS_QUADS,
+    QUADS,
+    HAMSTRING,
+    ADDUCTORS,
+    ABDUCTORS,
+    CALVES,
+}
