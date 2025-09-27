@@ -15,7 +15,9 @@ public class Exercise {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private Muscle primaryMuscle;
+    @ElementCollection
+    @Column(nullable = false)
+    private Set<Muscle> primaryMuscles;
 
     @Enumerated(EnumType.STRING)
     @ElementCollection
@@ -45,12 +47,12 @@ public class Exercise {
         this.name = name;
     }
 
-    public Muscle getPrimaryMuscle() {
-        return primaryMuscle;
+    public Set<Muscle> getPrimaryMuscle() {
+        return primaryMuscles;
     }
 
-    public void setPrimaryMuscle(Muscle primaryMuscle) {
-        this.primaryMuscle = primaryMuscle;
+    public void setPrimaryMuscles(Set<Muscle> primaryMuscle) {
+        this.primaryMuscles = primaryMuscle;
     }
 
     public Set<Muscle> getSecondaryMuscles() {

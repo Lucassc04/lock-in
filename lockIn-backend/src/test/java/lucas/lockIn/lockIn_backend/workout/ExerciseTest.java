@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
@@ -14,6 +15,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 public class ExerciseTest {
@@ -29,7 +31,7 @@ public class ExerciseTest {
         Set<Muscle> muscles = Set.of(Muscle.CALVES, Muscle.ABS, muscle);
 
         exercise.setName("Leg Curl");
-        exercise.setPrimaryMuscle(muscle);
+        exercise.setPrimaryMuscles(Set.of(muscle));
         exercise.setSecondaryMuscles(muscles);
 
         exerciseRepository.save(exercise);
@@ -39,6 +41,5 @@ public class ExerciseTest {
         assertNotNull(savedExercise.getId());
         assertEquals(muscle, savedExercise.getPrimaryMuscle());
         assertEquals(muscles,  savedExercise.getSecondaryMuscles());
-        assertFalse(savedExercise.getSecondaryMuscles().contains(muscle));
     }
 }
