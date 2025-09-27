@@ -2,6 +2,7 @@ package lucas.lockIn.lockIn_backend.workout.controller.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.WorkoutUnfinished;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleEntityNotFoundException(HttpServletRequest req, EntityNotFoundException ex){
 
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND);
+        errorResponse.setMessage(ex.getMessage());
+
+        return buildResponseEntity(errorResponse);
+    }
+
+    @ExceptionHandler(WorkoutUnfinished.class)
+    public ResponseEntity<Object>  handleWorkoutUnfinished(HttpServletRequest req, WorkoutUnfinished ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST);
         errorResponse.setMessage(ex.getMessage());
 
         return buildResponseEntity(errorResponse);

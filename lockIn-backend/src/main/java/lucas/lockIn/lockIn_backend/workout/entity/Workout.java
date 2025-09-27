@@ -2,6 +2,7 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,9 +13,16 @@ public class Workout {
     private Long id;
 
     @ManyToOne
-    private TemplateWorkout templateWorkout;
+    private WorkoutPlan workoutPlan;
+
+    @OneToOne
+    private WorkoutPlanExecuted workoutPlanExecuted;
+
+    private LocalDateTime startTime;
 
     private LocalDateTime finishTime;
+
+    private Duration duration;
 
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -22,22 +30,26 @@ public class Workout {
 
     public Workout(){}
 
-    public Workout(TemplateWorkout templateWorkout, LocalDateTime finishTime, String notes){
-        this.templateWorkout = templateWorkout;
+    public Workout(WorkoutPlan workoutPlan, LocalDateTime startTime, LocalDateTime finishTime, String notes, Duration duration
+    , WorkoutPlanExecuted workoutPlanExecuted) {
+        this.workoutPlan = workoutPlan;
+        this.startTime = startTime;
         this.finishTime = finishTime;
+        this.duration = duration;
         this.notes = notes;
+        this.workoutPlanExecuted = workoutPlanExecuted;
     }
 
     public Long getId() {
         return id;
     }
 
-    public TemplateWorkout getTemplateWorkout() {
-        return templateWorkout;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setTemplateWorkout(TemplateWorkout templateWorkout) {
-        this.templateWorkout = templateWorkout;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     public LocalDateTime getFinishTime() {
@@ -54,5 +66,29 @@ public class Workout {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public WorkoutPlan getWorkoutPlan() {
+        return workoutPlan;
+    }
+
+    public void setWorkoutPlan(WorkoutPlan workoutPlan) {
+        this.workoutPlan = workoutPlan;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public WorkoutPlanExecuted getWorkoutPlanExecuted() {
+        return workoutPlanExecuted;
+    }
+
+    public void setWorkoutPlanExecuted(WorkoutPlanExecuted workoutPlanExecuted) {
+        this.workoutPlanExecuted = workoutPlanExecuted;
     }
 }

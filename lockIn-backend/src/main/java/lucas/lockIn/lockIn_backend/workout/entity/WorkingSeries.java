@@ -3,9 +3,7 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
-@Entity
-@DiscriminatorValue("WORKING")
-public class WorkingSeries extends TemplateSeries {
+public class WorkingSeries extends Series {
 
     private Double weight;
 
@@ -15,7 +13,6 @@ public class WorkingSeries extends TemplateSeries {
 
     public WorkingSeries(Exercise exercise, int series, Double weight, int repetitions) {
         super(exercise, series);
-        this.series = series;
         this.weight = weight;
         this.repetitions = repetitions;
     }
