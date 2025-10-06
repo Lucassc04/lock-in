@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+/**
+ * This class represents a workout plan to be followed during a workout.
+ * The class has no state, which means it can't represent an executed workout.
+ */
 @Entity
-@Table(name="template_workout")
+@Table(name="workout_plan")
 public class WorkoutPlan {
 
     @Id

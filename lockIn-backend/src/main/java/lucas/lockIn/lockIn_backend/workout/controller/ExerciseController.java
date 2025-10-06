@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/exercise/v1")
+@RequestMapping("/api/v1/exercise/")
 public class ExerciseController {
 
     private final ExerciseService exerciseService;

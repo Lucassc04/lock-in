@@ -33,16 +33,16 @@ public class ExerciseService {
     }
 
     @Transactional
-    public Exercise createExercise(CreateAndUpdateExerciseDTO createAndUpdateExerciseDTO) {
+    public Exercise createExercise(CreateAndUpdateExerciseDTO exerciseDTO) {
         Exercise exercise = new Exercise();
 
-        exercise.setDescription(createAndUpdateExerciseDTO.description());
-        exercise.setName(createAndUpdateExerciseDTO.name());
-        exercise.setPrimaryMuscles(createAndUpdateExerciseDTO.primary());
+        exercise.setDescription(exerciseDTO.description());
+        exercise.setName(exerciseDTO.name());
+        exercise.setPrimaryMuscles(exerciseDTO.primary());
 
         //Optional operation, primary movers can't be accessory muscles.
-        cleanSecondaryMuscles(createAndUpdateExerciseDTO.primary(), createAndUpdateExerciseDTO.secondary());
-        exercise.setSecondaryMuscles(createAndUpdateExerciseDTO.secondary());
+        exerciseDTO.secondary().removeAll(exerciseDTO.primary());
+        exercise.setSecondaryMuscles(exerciseDTO.secondary());
 
         return exerciseRepository.save(exercise);
     }
@@ -58,7 +58,8 @@ public class ExerciseService {
         Set<Muscle> primaryMuscles =  newExercise.primary();
         exercise.setPrimaryMuscles(primaryMuscles);
 
-        cleanSecondaryMuscles(newExercise.primary(), newExercise.secondary());
+        //Optional operation, primary movers can't be accessory muscles.
+        newExercise.secondary().removeAll(newExercise.primary());
         exercise.setSecondaryMuscles(secondaryMuscles);
 
         return exerciseRepository.save(exercise);
@@ -68,7 +69,4 @@ public class ExerciseService {
         exerciseRepository.deleteById(id);
     }
 
-    private void cleanSecondaryMuscles(Set<Muscle> primaryMuscles, Set<Muscle> secondaryMuscles) {
-        secondaryMuscles.removeAll(primaryMuscles);
-    }
 }

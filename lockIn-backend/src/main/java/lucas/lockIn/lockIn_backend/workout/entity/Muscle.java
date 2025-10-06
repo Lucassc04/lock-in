@@ -13,9 +13,9 @@ public enum Muscle {
     LATS,
 
     //SHOULDER
-    ANTERIOR_DELTS,
+    FRONT_DELTS,
     LATERAL_DELTS,
-    POSTERIOR_DELTS,
+    REAR_DELTS,
 
     //ARMS
     LONG_HEAD_BICEPS,

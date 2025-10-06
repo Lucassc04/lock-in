@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+/**
+ * This class represents a workout plan followed during the workout itself,
+ * which means it acts as an already executed state.
+ */
 @Entity
 public class WorkoutPlanExecuted{
 

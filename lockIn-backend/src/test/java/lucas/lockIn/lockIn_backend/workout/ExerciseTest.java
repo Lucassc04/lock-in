@@ -39,7 +39,7 @@ public class ExerciseTest {
         Exercise savedExercise = exerciseRepository.findAll().get(0);
 
         assertNotNull(savedExercise.getId());
-        assertEquals(muscle, savedExercise.getPrimaryMuscle());
+        assertEquals(Set.of(muscle), savedExercise.getPrimaryMuscle());
         assertEquals(muscles,  savedExercise.getSecondaryMuscles());
     }
 }
