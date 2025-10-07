@@ -16,7 +16,7 @@ public class Workout {
     private WorkoutPlan workoutPlan;
 
     @OneToOne
-    private WorkoutPlanExecuted workoutPlanExecuted;
+    private ExecutedWorkoutPlan executedWorkoutPlan;
 
     private LocalDateTime startTime;
 
@@ -31,13 +31,13 @@ public class Workout {
     public Workout(){}
 
     public Workout(WorkoutPlan workoutPlan, LocalDateTime startTime, LocalDateTime finishTime, String notes, Duration duration
-    , WorkoutPlanExecuted workoutPlanExecuted) {
+    , ExecutedWorkoutPlan executedWorkoutPlan) {
         this.workoutPlan = workoutPlan;
         this.startTime = startTime;
         this.finishTime = finishTime;
         this.duration = duration;
         this.notes = notes;
-        this.workoutPlanExecuted = workoutPlanExecuted;
+        this.executedWorkoutPlan = executedWorkoutPlan;
     }
 
     public Long getId() {
@@ -84,11 +84,11 @@ public class Workout {
         this.duration = duration;
     }
 
-    public WorkoutPlanExecuted getWorkoutPlanExecuted() {
-        return workoutPlanExecuted;
+    public ExecutedWorkoutPlan getWorkoutPlanExecuted() {
+        return executedWorkoutPlan;
     }
 
-    public void setWorkoutPlanExecuted(WorkoutPlanExecuted workoutPlanExecuted) {
-        this.workoutPlanExecuted = workoutPlanExecuted;
+    public void setWorkoutPlanExecuted(ExecutedWorkoutPlan executedWorkoutPlan) {
+        this.executedWorkoutPlan = executedWorkoutPlan;
     }
 }

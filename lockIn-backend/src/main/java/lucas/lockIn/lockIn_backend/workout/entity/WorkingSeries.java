@@ -1,8 +1,10 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
-import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
+import lucas.lockIn.lockIn_backend.workout.dto.WorkingSeriesRequest;
 
+@Entity
 public class WorkingSeries extends Series {
 
     private Double weight;

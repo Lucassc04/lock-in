@@ -9,7 +9,6 @@ import java.util.Set;
  * The class has no state, which means it can't represent an executed workout.
  */
 @Entity
-@Table(name="workout_plan")
 public class WorkoutPlan {
 
     @Id
@@ -18,6 +17,7 @@ public class WorkoutPlan {
 
     private String name;
 
+    @OneToMany(cascade = CascadeType.ALL)
     private Set<PlannedSeries> series;
 
     public WorkoutPlan(){}

@@ -1,7 +1,8 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 
+@Entity
 public class PlannedSeries extends Series {
 
     public PlannedSeries() {}

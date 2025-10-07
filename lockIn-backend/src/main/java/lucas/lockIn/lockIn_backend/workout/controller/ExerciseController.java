@@ -22,19 +22,19 @@ public class ExerciseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Exercise> getExercise(@PathVariable long id) {
-        Exercise exercise = exerciseService.getExercise(id);
+        Exercise exercise = exerciseService.findById(id);
         return ResponseEntity.ok(exercise);
     }
 
     @GetMapping()
     public ResponseEntity<List<Exercise>> getAllExercises() {
-        List<Exercise> exerciseList = exerciseService.getAllExercises();
+        List<Exercise> exerciseList = exerciseService.findAll();
         return ResponseEntity.ok(exerciseList);
     }
 
     @PostMapping()
     public ResponseEntity<?> createExercise(@RequestBody CreateAndUpdateExerciseDTO createAndUpdateExerciseDTO) {
-        if(createAndUpdateExerciseDTO.name().isEmpty() || createAndUpdateExerciseDTO.description().isEmpty()){
+        if(createAndUpdateExerciseDTO.name().isEmpty()){
             return ResponseEntity.badRequest().build();
         }
         Exercise exercise = exerciseService.createExercise(createAndUpdateExerciseDTO);
@@ -59,7 +59,7 @@ public class ExerciseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteExercise(@PathVariable long id) {
+    public ResponseEntity<?> deleteExercise(@PathVariable Long id) {
         exerciseService.deleteExercise(id);
         return ResponseEntity.noContent().build();
     }

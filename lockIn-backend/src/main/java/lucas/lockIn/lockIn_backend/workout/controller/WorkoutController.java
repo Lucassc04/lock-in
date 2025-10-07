@@ -2,8 +2,8 @@ package lucas.lockIn.lockIn_backend.workout.controller;
 
 import jakarta.annotation.Nullable;
 import lucas.lockIn.lockIn_backend.workout.dto.PostWorkoutDTO;
-import lucas.lockIn.lockIn_backend.workout.dto.UnfinishedWorkoutDTO;
-import lucas.lockIn.lockIn_backend.workout.dto.WorkoutPlanExecutedDTO;
+import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
+import lucas.lockIn.lockIn_backend.workout.dto.ExecutedWorkoutPlanDTO;
 import lucas.lockIn.lockIn_backend.workout.entity.Workout;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutService;
 import org.springframework.http.ResponseEntity;
@@ -21,33 +21,33 @@ public class WorkoutController {
 
 
     @PostMapping("/start")
-    public ResponseEntity<UnfinishedWorkoutDTO> startWorkout(@RequestParam @Nullable Long workoutPlanId){
+    public ResponseEntity<CurrentWorkoutDTO> startWorkout(@RequestParam @Nullable Long workoutPlanId){
         Workout workout = workoutService.startWorkout(workoutPlanId);
 
-        UnfinishedWorkoutDTO unfinishedWorkout = new UnfinishedWorkoutDTO(
+        CurrentWorkoutDTO unfinishedWorkout = new CurrentWorkoutDTO(
                 workout.getId(), workout.getStartTime(), workout.getWorkoutPlan());
         return ResponseEntity.ok(unfinishedWorkout);
     }
 
     @PatchMapping("/finish/{id}")
-    public ResponseEntity<Workout> finishWorkout(@PathVariable Long id, @RequestParam @Nullable String notes,
-                                                 @RequestParam WorkoutPlanExecutedDTO workoutPlanExecutedDTO){
-        if(workoutPlanExecutedDTO == null){
+    public ResponseEntity<Workout> finishWorkout(@PathVariable Long id, @RequestBody @Nullable String notes,
+                                                 @RequestBody ExecutedWorkoutPlanDTO executedWorkoutPlanDTO){
+        if(executedWorkoutPlanDTO == null){
             return ResponseEntity.badRequest().build();
         }
-        Workout workout = workoutService.finishWorkout(id, workoutPlanExecutedDTO, notes);
+        Workout workout = workoutService.finishWorkout(id, executedWorkoutPlanDTO, notes);
         return ResponseEntity.ok(workout);
     }
 
     @PostMapping()
-    public ResponseEntity<Workout> postWorkout(@RequestParam PostWorkoutDTO postWorkoutDTO,
+    public ResponseEntity<Workout> createWorkout(@RequestParam PostWorkoutDTO postWorkoutDTO,
                                                @RequestParam @Nullable Long workoutPlanId){
 
         if(postWorkoutDTO == null){
             return ResponseEntity.badRequest().build();
         }
         if(postWorkoutDTO.startTime() ==  null ||  postWorkoutDTO.finishTime() ==  null
-                || postWorkoutDTO.workoutPlanExecutedDTO() == null){
+                || postWorkoutDTO.executedWorkoutPlanDTO() == null){
             return ResponseEntity.badRequest().build();
         }
 

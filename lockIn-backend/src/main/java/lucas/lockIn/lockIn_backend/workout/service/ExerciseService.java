@@ -22,13 +22,13 @@ public class ExerciseService {
     }
 
     @Transactional
-    public Exercise getExercise(long id) {
+    public Exercise findById(long id) {
         return  exerciseRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Exercise", id));
     }
 
     @Transactional
-    public List<Exercise> getAllExercises() {
+    public List<Exercise> findAll() {
         return exerciseRepository.findAll();
     }
 
@@ -49,7 +49,7 @@ public class ExerciseService {
     @Transactional
     public Exercise updateExercise(long id, CreateAndUpdateExerciseDTO newExercise) {
 
-        Exercise exercise = getExercise(id);
+        Exercise exercise = findById(id);
 
         exercise.setDescription(newExercise.description());
         exercise.setName(newExercise.name());

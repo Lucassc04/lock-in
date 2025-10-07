@@ -2,9 +2,11 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
 
-@Embeddable
+@Entity
 public abstract class Series {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;
 
     @ManyToOne

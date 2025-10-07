@@ -3,7 +3,6 @@ package lucas.lockIn.lockIn_backend.workout.controller.error;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.http.HttpStatus;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 public class ErrorResponse {
