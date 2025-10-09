@@ -1,12 +1,17 @@
 package lucas.lockIn.lockIn_backend.workout.service;
 
 import jakarta.annotation.Nullable;
-import lucas.lockIn.lockIn_backend.workout.dto.PostWorkoutDTO;
-import lucas.lockIn.lockIn_backend.workout.dto.WarmupSeriesRequest;
-import lucas.lockIn.lockIn_backend.workout.dto.WorkingSeriesRequest;
-import lucas.lockIn.lockIn_backend.workout.dto.ExecutedWorkoutPlanDTO;
+import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
+import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.request.WarmupSeriesRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.request.WorkingSeriesRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.request.ExecutedWorkoutPlanRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.*;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.mapper.ExecutedWorkoutPlanMapper;
+import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutMapper;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanExecutedRepository;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutRepository;
@@ -19,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Service
 public class WorkoutService {
 
@@ -26,30 +32,22 @@ public class WorkoutService {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final WorkoutPlanExecutedRepository workoutPlanExecutedRepository;
     private final ExerciseService exerciseService;
+    private final WorkoutMapper mapper;
+    private final ExecutedWorkoutPlanMapper executedWorkoutPlanMapper;
 
-    public WorkoutService(WorkoutRepository workoutRepository,
-                          WorkoutPlanRepository workoutPlanRepository,
-                          WorkoutPlanExecutedRepository workoutPlanExecutedRepository,
-                          ExerciseService exerciseService) {
-        this.workoutRepository = workoutRepository;
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.workoutPlanExecutedRepository = workoutPlanExecutedRepository;
-        this.exerciseService = exerciseService;
+    @Transactional
+    public WorkoutResponse findById(Long id) {
+        return mapper.toResponse(workoutRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Workout", id)));
     }
 
     @Transactional
-    public Workout findById(Long id) {
-        return workoutRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Workout", id));
+    public List<WorkoutResponse> findAll() {
+        return mapper.toResponseList(workoutRepository.findAll());
     }
 
     @Transactional
-    public List<Workout> findAll() {
-        return workoutRepository.findAll();
-    }
-
-    @Transactional
-    public Workout postWorkout(PostWorkoutDTO postWorkoutDTO, Long workoutPlanId) {
+    public WorkoutResponse createWorkout(WorkoutRequest workoutRequest, Long workoutPlanId) {
         Workout workout = new  Workout();
 
         //if the user choose a plan to follow during the workout
@@ -61,19 +59,20 @@ public class WorkoutService {
 
         //verify if it's well-defined, and set
         ExecutedWorkoutPlan executedWorkoutPlan = new ExecutedWorkoutPlan();
-        executedWorkoutPlan.setSeries(convertSeriesRequestToEntities(postWorkoutDTO.executedWorkoutPlanDTO()));
+        executedWorkoutPlan.setSeries(convertSeriesRequestToEntities(workoutRequest.executedWorkoutPlanRequest()));
         ExecutedWorkoutPlan savedExecutedWorkoutPlan = workoutPlanExecutedRepository.save(executedWorkoutPlan);
 
-        workout.setWorkoutPlanExecuted(savedExecutedWorkoutPlan);
-        workout.setStartTime(postWorkoutDTO.startTime());
-        workout.setFinishTime(postWorkoutDTO.finishTime());
-        workout.setDuration(Duration.between(postWorkoutDTO.startTime(), postWorkoutDTO.finishTime()));
+        workout.setExecutedWorkoutPlan(savedExecutedWorkoutPlan);
+        workout.setStartTime(workoutRequest.startTime());
+        workout.setFinishTime(workoutRequest.finishTime());
+        workout.setDuration(Duration.between(workoutRequest.startTime(), workoutRequest.finishTime()));
 
-        return workoutRepository.save(workout);
+        workout = workoutRepository.save(workout);
+        return mapper.toResponse(workout);
     }
 
     @Transactional
-    public Workout startWorkout(@Nullable Long workoutPlanId) {
+    public CurrentWorkoutDTO startWorkout(@Nullable Long workoutPlanId) {
         Workout workout = new Workout();
         //if the user choose a plan to follow during the workout
         if (workoutPlanId != null) {
@@ -81,26 +80,29 @@ public class WorkoutService {
                     .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId));
             workout.setWorkoutPlan(workoutPlan);
         }
-
         workout.setStartTime(LocalDateTime.now());
-        return workoutRepository.save(workout);
+
+        workout = workoutRepository.save(workout);
+        return mapper.toCurrent(workout);
     }
 
     @Transactional
-    public Workout finishWorkout(Long id, ExecutedWorkoutPlanDTO executedWorkoutPlanDTO, String notes) {
-        Workout workout = findById(id);
+    public WorkoutResponse finishWorkout(Long id, ExecutedWorkoutPlanRequest executedWorkoutPlanRequest) {
+        Workout workout = workoutRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Workout", id));
 
         ExecutedWorkoutPlan executedWorkoutPlan = new ExecutedWorkoutPlan();
-        executedWorkoutPlan.setSeries(convertSeriesRequestToEntities(executedWorkoutPlanDTO));
+        executedWorkoutPlan.setSeries(convertSeriesRequestToEntities(executedWorkoutPlanRequest));
         ExecutedWorkoutPlan savedExecutedWorkoutPlan = workoutPlanExecutedRepository.save(executedWorkoutPlan);
 
         workout.setFinishTime(LocalDateTime.now());
         workout.setDuration(Duration.between(workout.getStartTime(), workout.getFinishTime()));
 
-        workout.setWorkoutPlanExecuted(savedExecutedWorkoutPlan);
-        workout.setNotes(notes);
+        workout.setExecutedWorkoutPlan(savedExecutedWorkoutPlan);
+        workout.setNotes(executedWorkoutPlanRequest.notes());
 
-        return workoutRepository.save(workout);
+        workout = workoutRepository.save(workout);
+        return mapper.toResponse(workout);
     }
 
     /**
@@ -111,17 +113,17 @@ public class WorkoutService {
      * The result is a unified set containing all executed series from the workout.
      * </p>
      *
-     * @param executedWorkoutPlanDTO the DTO containing working and warmup series requests
+     * @param executedWorkoutPlanRequest the DTO containing working and warmup series requests
      * @return a set of all Series entities executed in the workout
      * @throws EntityNotFoundException if any exercise ID is not found
      */
-    private Set<Series> convertSeriesRequestToEntities(ExecutedWorkoutPlanDTO executedWorkoutPlanDTO){
-        Set<Series> series = executedWorkoutPlanDTO.workingSeries().stream()
+    private Set<Series> convertSeriesRequestToEntities(ExecutedWorkoutPlanRequest executedWorkoutPlanRequest){
+        Set<Series> series = executedWorkoutPlanRequest.workingSeries().stream()
                 .map(this::fromRequest)
                 .collect(Collectors.toSet());
         //Warmup Series are optional, if they do exist, add them to the series set.
-        if(executedWorkoutPlanDTO.warmupSeries() != null){
-            series.addAll(executedWorkoutPlanDTO.warmupSeries().stream()
+        if(executedWorkoutPlanRequest.warmupSeries() != null){
+            series.addAll(executedWorkoutPlanRequest.warmupSeries().stream()
                     .map(this::fromRequest)
                     .collect(Collectors.toSet()));
         }

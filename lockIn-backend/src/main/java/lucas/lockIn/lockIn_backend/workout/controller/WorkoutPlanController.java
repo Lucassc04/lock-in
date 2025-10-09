@@ -1,6 +1,8 @@
 package lucas.lockIn.lockIn_backend.workout.controller;
 
-import lucas.lockIn.lockIn_backend.workout.dto.CreateAndUpdateWorkoutPlanDTO;
+import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
 import org.springframework.http.ResponseEntity;
@@ -10,18 +12,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("api/v1/workoutPlan")
 public class WorkoutPlanController {
 
     private final WorkoutPlanService workoutPlanService;
 
-    public WorkoutPlanController(WorkoutPlanService workoutPlanService) {
-        this.workoutPlanService = workoutPlanService;
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<WorkoutPlan> getWorkoutPlan(@PathVariable Long id){
+    public ResponseEntity<WorkoutPlanResponse> getWorkoutPlan(@PathVariable Long id){
         if(id == null){
             return ResponseEntity.notFound().build();
         }
@@ -30,12 +29,12 @@ public class WorkoutPlanController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<WorkoutPlan>> getAllWorkoutPlan(){
+    public ResponseEntity<List<WorkoutPlanResponse>> getAllWorkoutPlan(){
         return  ResponseEntity.ok(workoutPlanService.findAll());
     }
 
     @PostMapping()
-    public ResponseEntity<WorkoutPlan> createWorkoutPlan(@RequestBody CreateAndUpdateWorkoutPlanDTO workoutPlan){
+    public ResponseEntity<WorkoutPlanResponse> createWorkoutPlan(@RequestBody WorkoutPlanRequest workoutPlan){
         if(workoutPlan == null){
             return ResponseEntity.badRequest().build();
         }
@@ -44,16 +43,16 @@ public class WorkoutPlanController {
             return ResponseEntity.badRequest().build();
         }
 
-        WorkoutPlan newWorkoutPlan = workoutPlanService.createWorkoutPlan(workoutPlan);
+        WorkoutPlanResponse newWorkoutPlan = workoutPlanService.createWorkoutPlan(workoutPlan);
         URI location =  ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .build(newWorkoutPlan.getId());
+                .build(newWorkoutPlan.id());
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WorkoutPlan> updateWorkoutPlan(@PathVariable Long id, @RequestBody CreateAndUpdateWorkoutPlanDTO workoutPlan){
+    public ResponseEntity<WorkoutPlanResponse> updateWorkoutPlan(@PathVariable Long id, @RequestBody WorkoutPlanRequest workoutPlan){
         if(workoutPlan == null){
             return ResponseEntity.badRequest().build();
         }
@@ -61,7 +60,16 @@ public class WorkoutPlanController {
                 || workoutPlan.series() == null || workoutPlan.series().isEmpty()){
             return ResponseEntity.badRequest().build();
         }
-        WorkoutPlan updatedWorkoutPlan = workoutPlanService.updateWorkoutPlan(id, workoutPlan);
+        WorkoutPlanResponse updatedWorkoutPlan = workoutPlanService.updateWorkoutPlan(id, workoutPlan);
         return ResponseEntity.ok(updatedWorkoutPlan);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteWorkoutPlan(@PathVariable Long id){
+        if(id == null){
+            return ResponseEntity.badRequest().build();
+        }
+        workoutPlanService.deleteWorkoutPlan(id);
+        return ResponseEntity.ok().build();
     }
 }

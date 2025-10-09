@@ -1,10 +1,13 @@
 package lucas.lockIn.lockIn_backend.workout.service;
 
 
-import lucas.lockIn.lockIn_backend.workout.dto.CreateAndUpdateExerciseDTO;
+import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,19 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
+@AllArgsConstructor
 @Service
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
-
-    public ExerciseService(ExerciseRepository exerciseRepository) {
-        this.exerciseRepository = exerciseRepository;
-    }
+    private final ExerciseMapperImpl mapper;
 
     @Transactional
     public Exercise findById(long id) {
-        return  exerciseRepository.findById(id)
-                .orElseThrow(()-> new EntityNotFoundException("Exercise", id));
+        return exerciseRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Exercise", id));
     }
 
     @Transactional
@@ -33,36 +34,33 @@ public class ExerciseService {
     }
 
     @Transactional
-    public Exercise createExercise(CreateAndUpdateExerciseDTO exerciseDTO) {
+    public ExerciseResponse createExercise(ExerciseRequest exerciseDTO) {
         Exercise exercise = new Exercise();
 
         exercise.setDescription(exerciseDTO.description());
         exercise.setName(exerciseDTO.name());
-        exercise.setPrimaryMuscles(exerciseDTO.primary());
+        exercise.setPrimaryMuscles(exerciseDTO.primaryMuscles());
 
-        //Optional operation, primary movers can't be accessory muscles.
-        exerciseDTO.secondary().removeAll(exerciseDTO.primary());
-        exercise.setSecondaryMuscles(exerciseDTO.secondary());
+        //Optional operation, primaryMuscles movers can't be accessory muscles.
+        exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
+        exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
+        exercise = exerciseRepository.save(exercise);
 
-        return exerciseRepository.save(exercise);
+        return mapper.toResponseDto(exercise);
     }
     @Transactional
-    public Exercise updateExercise(long id, CreateAndUpdateExerciseDTO newExercise) {
+    public ExerciseResponse updateExercise(long id, ExerciseRequest newExercise) {
 
         Exercise exercise = findById(id);
 
-        exercise.setDescription(newExercise.description());
-        exercise.setName(newExercise.name());
+        mapper.updateEntityFromDTO(newExercise, exercise);
 
-        Set<Muscle> secondaryMuscles =  newExercise.secondary();
-        Set<Muscle> primaryMuscles =  newExercise.primary();
-        exercise.setPrimaryMuscles(primaryMuscles);
+        //Optional operation, primaryMuscles movers can't be accessory muscles.
+        newExercise.secondaryMuscles().removeAll(newExercise.primaryMuscles());
+        exercise.setSecondaryMuscles(newExercise.secondaryMuscles());
 
-        //Optional operation, primary movers can't be accessory muscles.
-        newExercise.secondary().removeAll(newExercise.primary());
-        exercise.setSecondaryMuscles(secondaryMuscles);
-
-        return exerciseRepository.save(exercise);
+        Exercise updated = exerciseRepository.save(exercise);
+        return mapper.toResponseDto(updated);
     }
 
     public void deleteExercise(long id) {

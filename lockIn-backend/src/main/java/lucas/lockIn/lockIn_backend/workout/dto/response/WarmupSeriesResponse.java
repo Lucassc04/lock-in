@@ -1,4 +1,3 @@
 package lucas.lockIn.lockIn_backend.workout.dto.response;
 
-public record WarmupSeriesResponse(String exerciseName, Double weight, Integer repetitions) {
-}
+public record WarmupSeriesResponse(ExecutedExerciseResponse exercise, Double weight, Integer repetitions, Integer series){}

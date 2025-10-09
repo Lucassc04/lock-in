@@ -1,6 +1,7 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.Set;
 
@@ -8,7 +9,11 @@ import java.util.Set;
  * This class represents a workout plan to be followed during a workout.
  * The class has no state, which means it can't represent an executed workout.
  */
+@Getter
 @Entity
+@Setter
+@Builder
+@AllArgsConstructor
 public class WorkoutPlan {
 
     @Id
@@ -27,23 +32,4 @@ public class WorkoutPlan {
         this.name = name;
     }
 
-    public Set<PlannedSeries> getSeries() {
-        return series;
-    }
-
-    public void setSeries(Set<PlannedSeries> series) {
-        this.series = series;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

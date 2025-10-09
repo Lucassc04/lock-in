@@ -1,5 +1,7 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum Muscle {
     //CHEST
     UPPER_CHEST,
@@ -13,9 +15,9 @@ public enum Muscle {
     LATS,
 
     //SHOULDER
-    FRONT_DELTS,
-    LATERAL_DELTS,
-    REAR_DELTS,
+    FRONT_DELT,
+    LATERAL_DELT,
+    REAR_DELT,
 
     //ARMS
     LONG_HEAD_BICEPS,
@@ -42,5 +44,15 @@ public enum Muscle {
     HAMSTRING,
     ADDUCTORS,
     ABDUCTORS,
-    CALVES,
+    CALVES;
+
+    @JsonCreator
+    public static Muscle fromValue(String value) {
+        for (Muscle m : values()) {
+            if (m.name().equalsIgnoreCase(value)) {
+                return m;
+            }
+        }
+        throw new IllegalArgumentException("Unknown muscle: " + value);
+    }
 }

@@ -1,6 +1,8 @@
 package lucas.lockIn.lockIn_backend.workout.controller;
 
-import lucas.lockIn.lockIn_backend.workout.dto.CreateAndUpdateExerciseDTO;
+import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.springframework.http.ResponseEntity;
@@ -10,15 +12,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@AllArgsConstructor
 @RestController
-@RequestMapping("/api/v1/exercise/")
+@RequestMapping("/api/v1/exercise")
 public class ExerciseController {
 
     private final ExerciseService exerciseService;
-
-    public ExerciseController(ExerciseService exerciseService) {
-        this.exerciseService = exerciseService;
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Exercise> getExercise(@PathVariable long id) {
@@ -33,27 +32,27 @@ public class ExerciseController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> createExercise(@RequestBody CreateAndUpdateExerciseDTO createAndUpdateExerciseDTO) {
-        if(createAndUpdateExerciseDTO.name().isEmpty()){
+    public ResponseEntity<?> createExercise(@RequestBody ExerciseRequest exerciseRequest) {
+        if(exerciseRequest.name().isEmpty()){
             return ResponseEntity.badRequest().build();
         }
-        Exercise exercise = exerciseService.createExercise(createAndUpdateExerciseDTO);
+        ExerciseResponse exercise = exerciseService.createExercise(exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(exercise.getId())
+                .buildAndExpand(exercise.id())
                 .toUri();
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateExercise(@RequestBody CreateAndUpdateExerciseDTO createAndUpdateExerciseDTO, @PathVariable long id) {
-        if(createAndUpdateExerciseDTO.name().isEmpty() || createAndUpdateExerciseDTO.description().isEmpty()){
+    public ResponseEntity<?> updateExercise(@RequestBody ExerciseRequest exerciseRequest, @PathVariable long id) {
+        if(exerciseRequest.name().isEmpty()){
             return ResponseEntity.badRequest().build();
         }
-        Exercise exercise = exerciseService.updateExercise(id, createAndUpdateExerciseDTO);
+        ExerciseResponse exercise = exerciseService.updateExercise(id, exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(exercise.getId())
+                .buildAndExpand(exercise.id())
                 .toUri();
         return ResponseEntity.created(location).build();
     }

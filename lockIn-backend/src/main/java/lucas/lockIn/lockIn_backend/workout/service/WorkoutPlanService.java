@@ -1,62 +1,59 @@
 package lucas.lockIn.lockIn_backend.workout.service;
 
-import lucas.lockIn.lockIn_backend.workout.dto.CreateAndUpdateWorkoutPlanDTO;
-import lucas.lockIn.lockIn_backend.workout.dto.PlannedSeriesRequest;
-import lucas.lockIn.lockIn_backend.workout.dto.WarmupSeriesRequest;
-import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
+import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.request.PlannedSeriesRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.PlannedSeries;
-import lucas.lockIn.lockIn_backend.workout.entity.WarmupSeries;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
-import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
+import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutPlanMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 @Transactional
 @Service
 public class WorkoutPlanService {
 
     private final WorkoutPlanRepository workoutPlanRepository;
     private final ExerciseService exerciseService;
+    private final WorkoutPlanMapperImpl mapper;
 
-    public WorkoutPlanService(WorkoutPlanRepository workoutPlanRepository,
-                              ExerciseService exerciseService) {
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.exerciseService = exerciseService;
+
+    public WorkoutPlanResponse findById(Long id) {
+        return mapper.toResponse(workoutPlanRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Workout Plan", id)));
     }
 
-    public WorkoutPlan findById(Long id) {
-        return workoutPlanRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Workout Plan", id));
+    public List<WorkoutPlanResponse> findAll() {
+        return mapper.toResponseList(workoutPlanRepository.findAll());
     }
 
-    public List<WorkoutPlan> findAll() {
-        return workoutPlanRepository.findAll();
-    }
-
-    public WorkoutPlan createWorkoutPlan(CreateAndUpdateWorkoutPlanDTO createAndUpdateWorkoutPlanDTO) {
+    public WorkoutPlanResponse createWorkoutPlan(WorkoutPlanRequest workoutPlanRequest) {
         WorkoutPlan workoutPlan = new WorkoutPlan();
 
-        workoutPlan.setName(createAndUpdateWorkoutPlanDTO.name());
-        workoutPlan.setSeries(converSeriesRequestToEntities(createAndUpdateWorkoutPlanDTO.series()));
+        workoutPlan.setName(workoutPlanRequest.name());
+        workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
 
-        return workoutPlanRepository.save(workoutPlan);
+        workoutPlan = workoutPlanRepository.save(workoutPlan);
+        return mapper.toResponse(workoutPlan);
     }
 
 
-    public WorkoutPlan updateWorkoutPlan(Long id, CreateAndUpdateWorkoutPlanDTO createAndUpdateWorkoutPlanDTO) {
-        WorkoutPlan workoutPlan = findById(id);
+    public WorkoutPlanResponse updateWorkoutPlan(Long id, WorkoutPlanRequest workoutPlanRequest) {
+        WorkoutPlan workoutPlan = mapper.toEntity(findById(id));
 
-        workoutPlan.setName(createAndUpdateWorkoutPlanDTO.name());
-        workoutPlan.setSeries(converSeriesRequestToEntities(createAndUpdateWorkoutPlanDTO.series()));
+        workoutPlan.setName(workoutPlanRequest.name());
+        workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
 
-        return workoutPlanRepository.save(workoutPlan);
+        workoutPlan = workoutPlanRepository.save(workoutPlan);
+        return mapper.toResponse(workoutPlan);
     }
 
     public void deleteWorkoutPlan(Long id) {
@@ -75,7 +72,7 @@ public class WorkoutPlanService {
      * @return a set of all Series entities executed in the workout
      * @throws EntityNotFoundException if any exercise ID is not found
      */
-    private Set<PlannedSeries> converSeriesRequestToEntities(Set<PlannedSeriesRequest> series) {
+    private Set<PlannedSeries> convertSeriesRequestToEntities(Set<PlannedSeriesRequest> series) {
         return series.stream().
                 map(this::fromRequest).
                 collect(Collectors.toSet());

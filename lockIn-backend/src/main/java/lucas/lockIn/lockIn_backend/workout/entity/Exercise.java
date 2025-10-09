@@ -1,9 +1,17 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
+@Data
+@AllArgsConstructor
+@Builder
 @Entity
 public class Exercise {
 
@@ -17,57 +25,15 @@ public class Exercise {
     @Enumerated(EnumType.STRING)
     @ElementCollection
     @Column(nullable = false)
-    private Set<Muscle> primaryMuscles;
+    private Set<Muscle> primaryMuscles = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @ElementCollection
-    private Set<Muscle> secondaryMuscles;
+    private Set<Muscle> secondaryMuscles = new HashSet<>();
 
     @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    public Exercise(String name, String description) {
-        this.name = name;
-        this.description = description;
-    }
-
-    public Exercise(){
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<Muscle> getPrimaryMuscle() {
-        return primaryMuscles;
-    }
-
-    public void setPrimaryMuscles(Set<Muscle> primaryMuscle) {
-        this.primaryMuscles = primaryMuscle;
-    }
-
-    public Set<Muscle> getSecondaryMuscles() {
-        return secondaryMuscles;
-    }
-
-    public void setSecondaryMuscles(Set<Muscle> secondaryMuscles) {
-        this.secondaryMuscles = secondaryMuscles;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public Exercise(){}
 }

@@ -1,9 +1,11 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
-import lucas.lockIn.lockIn_backend.workout.dto.WorkingSeriesRequest;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 public class WorkingSeries extends Series {
 
@@ -19,19 +21,4 @@ public class WorkingSeries extends Series {
         this.repetitions = repetitions;
     }
 
-    public Double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
-
-    public int getRepetitions() {
-        return repetitions;
-    }
-
-    public void setRepetitions(int repetitions) {
-        this.repetitions = repetitions;
-    }
 }
