@@ -28,7 +28,7 @@ public class ExecutedWorkoutPlan {
 
     public ExecutedWorkoutPlan(){}
 
-    public void setSeries(Set<Series> series) {
+    public void setSeries(List<Series> series) {
         for (Series s : series) {
             if(s instanceof WarmupSeries wms){
                 this.warmupSeries.add(wms);

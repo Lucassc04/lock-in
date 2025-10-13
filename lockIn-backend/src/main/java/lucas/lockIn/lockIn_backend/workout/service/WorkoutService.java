@@ -110,25 +110,22 @@ public class WorkoutService {
      * <p>
      * This method processes both working series and warmup series requests (if present),
      * retrieves the associated exercises, and creates the corresponding Series entities.
-     * This method also turns all equal sets into one, with an added series attribute, i.e.,
-     * If an exercise was performed twice with the same attributes and results, the resulting
-     * Set Element will be unified.
      * The result is a unified set containing all executed series from the workout.
      * </p>
      *
      * @param executedWorkoutPlanRequest the DTO containing working and warmup series requests
-     * @return a set of all Series entities executed in the workout
+     * @return a list of all Series entities executed in the workout
      * @throws EntityNotFoundException if any exercise ID is not found
      */
-    private Set<Series> convertSeriesRequestToEntities(ExecutedWorkoutPlanRequest executedWorkoutPlanRequest){
-        Set<Series> series = executedWorkoutPlanRequest.workingSeries().stream()
+    private List<Series> convertSeriesRequestToEntities(ExecutedWorkoutPlanRequest executedWorkoutPlanRequest){
+        List<Series> series = executedWorkoutPlanRequest.workingSeries().stream()
                 .map(this::fromRequest)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
         //Warmup Series are optional, if they do exist, add them to the series set.
         if(executedWorkoutPlanRequest.warmupSeries() != null){
             series.addAll(executedWorkoutPlanRequest.warmupSeries().stream()
                     .map(this::fromRequest)
-                    .collect(Collectors.toSet()));
+                    .toList());
         }
 
         return series;
