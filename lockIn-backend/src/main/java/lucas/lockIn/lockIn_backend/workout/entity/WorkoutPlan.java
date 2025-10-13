@@ -3,7 +3,7 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * This class represents a workout plan to be followed during a workout.
@@ -23,11 +23,11 @@ public class WorkoutPlan {
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private Set<PlannedSeries> series;
+    private List<PlannedSeries> series;
 
     public WorkoutPlan(){}
 
-    public WorkoutPlan(Set<PlannedSeries> series, String name){
+    public WorkoutPlan(List<PlannedSeries> series, String name){
         this.series = series;
         this.name = name;
     }

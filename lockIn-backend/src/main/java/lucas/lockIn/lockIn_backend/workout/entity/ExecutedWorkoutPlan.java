@@ -3,7 +3,8 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,10 +21,10 @@ public class ExecutedWorkoutPlan {
 
     @OneToMany(cascade = CascadeType.ALL)
     @Column(nullable = false)
-    private Set<WorkingSeries> workingSeries = new HashSet<>();
+    private List<WorkingSeries> workingSeries = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
-    private Set<WarmupSeries> warmupSeries = new HashSet<>();
+    private List<WarmupSeries> warmupSeries = new ArrayList<>();
 
     public ExecutedWorkoutPlan(){}
 

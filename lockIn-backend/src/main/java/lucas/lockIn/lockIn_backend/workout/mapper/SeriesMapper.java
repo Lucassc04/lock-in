@@ -15,29 +15,23 @@ public interface SeriesMapper {
     //For all the classes, need to explicitly map the attributes that the classes
     // inherit from the Series class
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     PlannedSeriesResponse toResponse(PlannedSeries plannedSeries);
 
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     @Mapping(target = "id", ignore = true)
     PlannedSeries toEntity(PlannedSeriesResponse plannedSeriesResponse);
 
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     WorkingSeriesResponse toResponse(WorkingSeries workingSeries);
 
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     @Mapping(target = "id", ignore = true)
     WorkingSeries toEntity(WorkingSeriesResponse workingSeriesResponse);
 
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     WarmupSeriesResponse toResponse(WarmupSeries warmupSeries);
 
     @Mapping(source = "exercise", target = "exercise")
-    @Mapping(source = "series", target = "series")
     @Mapping(target = "id", ignore = true)
     WarmupSeries toEntity(WarmupSeriesResponse warmupSeriesResponse);
 }

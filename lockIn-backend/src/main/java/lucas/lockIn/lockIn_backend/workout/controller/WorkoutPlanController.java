@@ -3,7 +3,6 @@ package lucas.lockIn.lockIn_backend.workout.controller;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
-import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

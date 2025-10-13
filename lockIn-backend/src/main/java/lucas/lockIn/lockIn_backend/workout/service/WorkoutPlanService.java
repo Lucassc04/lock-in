@@ -69,13 +69,13 @@ public class WorkoutPlanService {
      * </p>
      *
      * @param series the request containing the exercise id and series
-     * @return a set of all Series entities executed in the workout
+     * @return a list of all Series entities executed in the workout
      * @throws EntityNotFoundException if any exercise ID is not found
      */
-    private Set<PlannedSeries> convertSeriesRequestToEntities(Set<PlannedSeriesRequest> series) {
+    private List<PlannedSeries> convertSeriesRequestToEntities(List<PlannedSeriesRequest> series) {
         return series.stream().
                 map(this::fromRequest).
-                collect(Collectors.toSet());
+                collect(Collectors.toList());
     }
 
     /**

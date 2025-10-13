@@ -2,7 +2,7 @@ package lucas.lockIn.lockIn_backend.workout.dto.request;
 
 import jakarta.annotation.Nullable;
 
-import java.util.Set;
+import java.util.List;
 
-public record ExecutedWorkoutPlanRequest(Set<WorkingSeriesRequest> workingSeries, @Nullable Set<WarmupSeriesRequest> warmupSeries, @Nullable String notes) {
+public record ExecutedWorkoutPlanRequest(List<WorkingSeriesRequest> workingSeries, @Nullable List<WarmupSeriesRequest> warmupSeries, @Nullable String notes) {
 }

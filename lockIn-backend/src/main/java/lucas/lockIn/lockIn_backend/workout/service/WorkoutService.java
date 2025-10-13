@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -33,7 +34,6 @@ public class WorkoutService {
     private final WorkoutPlanExecutedRepository workoutPlanExecutedRepository;
     private final ExerciseService exerciseService;
     private final WorkoutMapper mapper;
-    private final ExecutedWorkoutPlanMapper executedWorkoutPlanMapper;
 
     @Transactional
     public WorkoutResponse findById(Long id) {
@@ -110,6 +110,9 @@ public class WorkoutService {
      * <p>
      * This method processes both working series and warmup series requests (if present),
      * retrieves the associated exercises, and creates the corresponding Series entities.
+     * This method also turns all equal sets into one, with an added series attribute, i.e.,
+     * If an exercise was performed twice with the same attributes and results, the resulting
+     * Set Element will be unified.
      * The result is a unified set containing all executed series from the workout.
      * </p>
      *
@@ -143,7 +146,8 @@ public class WorkoutService {
      * @return a new WorkingSeries instance
      */
     private WorkingSeries fromRequest(WorkingSeriesRequest request) {
-        return new WorkingSeries(exerciseService.findById(request.exerciseId()), 1, request.weight(), request.repetitions());
+        int series = (request.series() == null) ? 1 : request.series();
+        return new WorkingSeries(exerciseService.findById(request.exerciseId()), series, request.weight(), request.repetitions());
     }
 
     /**
