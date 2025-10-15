@@ -6,3 +6,9 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:your-default-secret-key-if-not-found}
+  expiration:
+    access: ${JWT_ACCESS_EXPIRATION:86400000}
+    refresh: ${JWT_REFRESH_EXPIRATION:86400000}
