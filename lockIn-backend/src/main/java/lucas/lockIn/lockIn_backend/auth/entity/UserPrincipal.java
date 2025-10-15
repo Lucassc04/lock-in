@@ -16,6 +16,11 @@ public class UserPrincipal implements Principal {
         this.username = username;
     }
 
+    public UserPrincipal(User user) {
+        userId = user.getId();
+        username = user.getUsername();
+    }
+
     @Override
     public String getName() {
         return username;

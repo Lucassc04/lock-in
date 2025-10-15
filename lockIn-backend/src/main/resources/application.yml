@@ -9,6 +9,8 @@ server:
 
 jwt:
   secret: ${JWT_SECRET:your-default-secret-key-if-not-found}
-  expiration:
-    access: ${JWT_ACCESS_EXPIRATION:86400000}
-    refresh: ${JWT_REFRESH_EXPIRATION:86400000}
+  expiration: ${JWT_EXPIRATION:8000}
+
+cookie:
+  secret: ${COOKIE_SECRET:your-default-secret-key-if-not-found}
+  expiration: ${COOKIE_EXPIRATION:9000000}

@@ -16,13 +16,16 @@ import java.util.function.Function;
 public class JwtService {
 
     @Value("${jwt.secret}")
-    private String secretKey;
+    private String tokenSecretKey;
 
-    @Value("${jwt.access.expiration}")
-    private long access_expiration;
+    @Value("${jwt.expiration}")
+    private long tokenExpiration;
 
-    @Value("${jwt.refresh.expiration}")
-    private long refresh_expiration;
+    @Value("${cookie.expiration}")
+    private long cookieExpiration;
+
+    @Value("${cookie.secret}")
+    private String cookieSecret;
 
     /**
      * Retrieves the signing key used for JWT token generation and validation.
@@ -30,29 +33,50 @@ public class JwtService {
      *
      * @return SecretKey object used for signing and verifying JWT tokens
      */
-    private SecretKey getSigningKey(){
-        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    private SecretKey getTokenSigningKey(){
+        return Keys.hmacShaKeyFor(tokenSecretKey.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private SecretKey getCookieSigningKey(){
+        return Keys.hmacShaKeyFor(cookieSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * Generates a JWT access token for the specified user.
-     * The access token is a short duration token.
-     * The refresh token is a long duration token.
+     * Generates a JWT refresh token as a cookie for the specified user.
+     * The token is long duration, to be stored as a cookie.
      * The token includes the username as subject, userId as a custom claim,
      * and is configured with issuance and expiration timestamps.
      *
      * @param username the username to be set as the token subject
      * @param userId the user ID to be included as a custom claim in the token
-     * @param access if the token to be generated is an access token
+     * @return a signed JWT refresh token string if access is true, refresh token string if not
+     */
+    public String generateCookie(String username, Long userId){
+        return Jwts.builder()
+                .subject(username)
+                .claim("userId", userId)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis()+ cookieExpiration))
+                .signWith(getCookieSigningKey())
+                .compact();
+    }
+    /**
+     * Generates a JWT access token for the specified user.
+     * The token is short duration, used for accessing server-side endpoints.
+     * The token includes the username as subject, userId as a custom claim,
+     * and is configured with issuance and expiration timestamps.
+     *
+     * @param username the username to be set as the token subject
+     * @param userId the user ID to be included as a custom claim in the token
      * @return a signed JWT access token string if access is true, refresh token string if not
      */
-    public String generateToken(String username, Long userId, boolean access){
+    public String generateToken(String username, Long userId){
             return Jwts.builder()
                     .subject(username)
                     .claim("userId", userId)
                     .issuedAt(new Date())
-                    .expiration(new Date(System.currentTimeMillis() + (access ? access_expiration : refresh_expiration)))
-                    .signWith(getSigningKey())
+                    .expiration(new Date(System.currentTimeMillis() + tokenExpiration))
+                    .signWith(getTokenSigningKey())
                     .compact();
     }
 
@@ -66,7 +90,7 @@ public class JwtService {
     public boolean validateToken(String token){
         try{
             Jwts.parser()
-                    .verifyWith(getSigningKey())
+                    .verifyWith(getTokenSigningKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
@@ -98,6 +122,14 @@ public class JwtService {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public Date extractIssuance(String token) {
+        return extractClaim(token, Claims::getIssuedAt);
+    }
+
     /**
      * Extracts all claims from the JWT token.
      * Parses and validates the token signature, then returns the payload containing all claims.
@@ -108,7 +140,7 @@ public class JwtService {
      */
     private Claims extractAllClaims(String token) throws JwtException {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith(getTokenSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -127,4 +159,5 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+
 }

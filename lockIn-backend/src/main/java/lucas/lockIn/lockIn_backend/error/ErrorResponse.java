@@ -1,4 +1,4 @@
-package lucas.lockIn.lockIn_backend.workout.controller.error;
+package lucas.lockIn.lockIn_backend.error;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.http.HttpStatus;
