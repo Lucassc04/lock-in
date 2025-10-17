@@ -2,6 +2,7 @@ package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lucas.lockIn.lockIn_backend.auth.entity.User;
 
 import java.util.List;
 

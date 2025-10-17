@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
+import lucas.lockIn.lockIn_backend.workout.entity.Workout;
+import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,6 +38,21 @@ public class User implements UserDetails {
     private String password;
 
     private Role role;
+
+    //workout domain attributes
+    @ManyToMany
+    @JoinTable(
+            name = "user_workout_plan",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "workout_plan_id")
+    )
+    private List<WorkoutPlan> workoutPlans;
+
+    @OneToMany(mappedBy="user", cascade=CascadeType.ALL)
+    private List<Workout> workouts;
+
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
+    private List<Exercise> exercises;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
