@@ -3,10 +3,14 @@ package lucas.lockIn.lockIn_backend.auth.service;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lucas.lockIn.lockIn_backend.auth.dto.LoginRequest;
-import lucas.lockIn.lockIn_backend.auth.dto.RegisterRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.request.LoginRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.request.RegisterRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.response.TokenResponse;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
+import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidCredentialsException;
+import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidRefreshToken;
+import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -25,16 +29,18 @@ public class AuthenticationService {
         return userService.createUser(registerRequest);
     }
 
-    public String loginUser(@Valid @NotNull LoginRequest loginRequest) {
-        if(userService.verifyLogIn(loginRequest)) {
-           User user =  userService.findByEmail(loginRequest.email());
+    public TokenResponse loginUser(@Valid @NotNull LoginRequest loginRequest) {
+        try {
+            User user = userService.verifyLogIn(loginRequest);
+            String token = jwtService.generateToken(user.getUsername(), user.getId());
 
-           return jwtService.generateToken(user.getUsername(), user.getId());
+            return new TokenResponse(token, new UserPrincipal(user));
+        } catch (EntityNotFoundException e) {
+            throw new InvalidCredentialsException("Invalid username or password");
         }
-        return null;
     }
 
-    public String requestAccessToken(@NotNull String refreshCookie) {
+    public TokenResponse requestAccessToken(@NotNull String refreshCookie) {
         boolean validated = jwtService.validateToken(refreshCookie);
         final String token;
 
@@ -42,10 +48,10 @@ public class AuthenticationService {
             String username = jwtService.extractUsername(refreshCookie);
             Long userId =  jwtService.extractUserId(refreshCookie);
 
-            return jwtService.generateToken(username, userId);
+            token = jwtService.generateToken(username, userId);
+            return new TokenResponse(token, new UserPrincipal(userId, username));
         }
-
-        return null;
+        throw new InvalidRefreshToken("Refresh token is invalid! Please login again");
     }
 
     public ResponseCookie requestRefreshCookie(@Valid @NotNull UserPrincipal userPrincipal) {

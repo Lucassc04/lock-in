@@ -1,4 +1,4 @@
-package lucas.lockIn.lockIn_backend.auth.dto;
+package lucas.lockIn.lockIn_backend.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;

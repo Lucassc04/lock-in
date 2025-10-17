@@ -1,8 +1,8 @@
 package lucas.lockIn.lockIn_backend.auth.service;
 
 import lombok.AllArgsConstructor;
-import lucas.lockIn.lockIn_backend.auth.dto.LoginRequest;
-import lucas.lockIn.lockIn_backend.auth.dto.RegisterRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.request.LoginRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.request.RegisterRequest;
 import lucas.lockIn.lockIn_backend.auth.entity.Role;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
@@ -38,12 +38,12 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User", email, "email"));
     }
 
-    public boolean verifyLogIn(LoginRequest loginRequest) {
+    public User verifyLogIn(LoginRequest loginRequest) {
         User user = findByEmail(loginRequest.email());
         if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new InvalidCredentialsException("Email or password is invalid");
         }
-        return true;
+        return user;
     }
 
     public UserPrincipal updateUser(Long userId, RegisterRequest registerRequest) {

@@ -1,15 +1,13 @@
 package lucas.lockIn.lockIn_backend.auth.controller;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lucas.lockIn.lockIn_backend.auth.dto.LoginRequest;
-import lucas.lockIn.lockIn_backend.auth.dto.RegisterRequest;
-import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.dto.request.LoginRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.request.RegisterRequest;
+import lucas.lockIn.lockIn_backend.auth.dto.response.TokenResponse;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
 import lucas.lockIn.lockIn_backend.auth.service.AuthenticationService;
-import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid @NotNull RegisterRequest registerRequest){
@@ -32,22 +29,28 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid @NotNull LoginRequest loginRequest, HttpServletResponse response){
-        String jwtToken = authenticationService.loginUser(loginRequest);
+    public ResponseEntity<?> login(@RequestBody @Valid @NotNull LoginRequest loginRequest){
+        TokenResponse tokenResponse = authenticationService.loginUser(loginRequest);
 
-        User user = userService.findByEmail(loginRequest.email());
         ResponseCookie cookie = authenticationService.requestRefreshCookie(
-                new UserPrincipal(user));
+                tokenResponse.userPrincipal());
 
-        response.addHeader(HttpHeaders.COOKIE, cookie.toString());
-        return ResponseEntity.ok().body(jwtToken);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(tokenResponse);
 
     }
 
-    @GetMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@CookieValue(name="REFRESH") String cookie){
-        String jwtToken = authenticationService.requestAccessToken(cookie);
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name="REFRESH", required = false) String refreshToken) {
 
-        return ResponseEntity.ok().body(jwtToken);
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).body("Refresh token missing");
+        }
+
+        TokenResponse tokenResponse = authenticationService.requestAccessToken(refreshToken);
+
+        return ResponseEntity.ok().body(tokenResponse);
     }
 }

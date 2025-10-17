@@ -24,9 +24,6 @@ public class JwtService {
     @Value("${cookie.expiration}")
     private long cookieExpiration;
 
-    @Value("${cookie.secret}")
-    private String cookieSecret;
-
     /**
      * Retrieves the signing key used for JWT token generation and validation.
      * The key is generated from the configured secret using HMAC-SHA algorithm.
@@ -35,10 +32,6 @@ public class JwtService {
      */
     private SecretKey getTokenSigningKey(){
         return Keys.hmacShaKeyFor(tokenSecretKey.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private SecretKey getCookieSigningKey(){
-        return Keys.hmacShaKeyFor(cookieSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -57,7 +50,7 @@ public class JwtService {
                 .claim("userId", userId)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis()+ cookieExpiration))
-                .signWith(getCookieSigningKey())
+                .signWith(getTokenSigningKey())
                 .compact();
     }
     /**
