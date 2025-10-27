@@ -1,5 +1,6 @@
 package lucas.lockIn.lockIn_backend.workout.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
@@ -20,7 +21,7 @@ public class ExerciseController {
     private final ExerciseService exerciseService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Exercise> getExercise(@PathVariable long id) {
+    public ResponseEntity<Exercise> getExercise(@PathVariable Long id) {
         Exercise exercise = exerciseService.findById(id);
         return ResponseEntity.ok(exercise);
     }
@@ -32,7 +33,7 @@ public class ExerciseController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> createExercise(@RequestBody ExerciseRequest exerciseRequest) {
+    public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest) {
         if(exerciseRequest.name().isEmpty()){
             return ResponseEntity.badRequest().build();
         }
@@ -45,7 +46,7 @@ public class ExerciseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateExercise(@RequestBody ExerciseRequest exerciseRequest, @PathVariable long id) {
+    public ResponseEntity<?> updateExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable long id) {
         if(exerciseRequest.name().isEmpty()){
             return ResponseEntity.badRequest().build();
         }

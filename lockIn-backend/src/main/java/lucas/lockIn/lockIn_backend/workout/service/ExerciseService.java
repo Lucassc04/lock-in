@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
-import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 
 @AllArgsConstructor
 @Service
@@ -42,8 +40,10 @@ public class ExerciseService {
         exercise.setPrimaryMuscles(exerciseDTO.primaryMuscles());
 
         //Optional operation, primaryMuscles movers can't be accessory muscles.
-        exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
-        exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
+        if(exerciseDTO.secondaryMuscles() != null){
+            exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
+            exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
+        }
         exercise = exerciseRepository.save(exercise);
 
         return mapper.toResponseDto(exercise);
@@ -56,8 +56,10 @@ public class ExerciseService {
         mapper.updateEntityFromDTO(newExercise, exercise);
 
         //Optional operation, primaryMuscles movers can't be accessory muscles.
-        newExercise.secondaryMuscles().removeAll(newExercise.primaryMuscles());
-        exercise.setSecondaryMuscles(newExercise.secondaryMuscles());
+        if(newExercise.secondaryMuscles() != null){
+            newExercise.secondaryMuscles().removeAll(newExercise.primaryMuscles());
+            exercise.setSecondaryMuscles(newExercise.secondaryMuscles());
+        }
 
         Exercise updated = exerciseRepository.save(exercise);
         return mapper.toResponseDto(updated);

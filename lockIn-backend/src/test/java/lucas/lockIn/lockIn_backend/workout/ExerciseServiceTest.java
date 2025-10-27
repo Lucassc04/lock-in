@@ -1,82 +1,134 @@
 package lucas.lockIn.lockIn_backend.workout;
 
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
+import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
+import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
+import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
 @ActiveProfiles("test")
-@Transactional
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@ExtendWith(MockitoExtension.class)
 public class ExerciseServiceTest {
 
-    @Autowired
+    @Mock
+    private ExerciseRepository exerciseRepository;
+
+    @Spy
+    private ExerciseMapperImpl exerciseMapper;
+
+    @InjectMocks
     private ExerciseService exerciseService;
 
-    private ExerciseRequest benchPress;
-    private ExerciseRequest squat;
-    private ExerciseRequest upperBackRow;
-    private ExerciseRequest chinUps;
+    private Exercise validExercise;
+
+    @BeforeEach
+    public void setUp() {
+        Set<Muscle> primaryMuscles = new HashSet<>(List.of(Muscle.MIDDLE_CHEST));
+        Set<Muscle> secondaryMuscles
+                = new HashSet<>(Arrays.asList(Muscle.SHORT_HEAD_TRICEPS, Muscle.MEDIAL_HEAD_TRICEPS));
+
+        validExercise = Exercise.builder()
+                .name("Bench Press")
+                .primaryMuscles(primaryMuscles)
+                .secondaryMuscles(secondaryMuscles)
+                .description("With 20kg bar")
+                .id(1L)
+                .build();
+    }
+
+    @Test
+    @DisplayName("Should create a normal exercise")
+    void shouldCreateExercise(){
+        //Arrange
+        ExerciseRequest request = new ExerciseRequest(
+                "Bench Press", validExercise.getPrimaryMuscles(), validExercise.getSecondaryMuscles(), "With 20kg bar");
+
+        when(exerciseRepository.save(any())).thenReturn(validExercise);
+
+        //Act
+        ExerciseResponse response = exerciseService.createExercise(request);
+
+        //Assert
+        assertThat(response)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L)
+                .hasFieldOrPropertyWithValue("name", request.name())
+                .hasFieldOrPropertyWithValue("primaryMuscles", request.primaryMuscles())
+                .hasFieldOrPropertyWithValue("secondaryMuscles", request.secondaryMuscles())
+                .hasFieldOrPropertyWithValue("description", request.description());
+    }
+
+    @Test
+    @DisplayName("Should create an exercise without secondary muscles (pruned), because they are the same as" +
+            "the primary muscles.")
+    void shouldCreateExerciseWithPrunedSecondaryMuscles(){
+        //Arrange
+        validExercise.setSecondaryMuscles(validExercise.getPrimaryMuscles());
+        ExerciseRequest request = new ExerciseRequest(
+                "Bench Press", validExercise.getPrimaryMuscles(), validExercise.getPrimaryMuscles(),null);
+
+        when(exerciseRepository.save(any())).thenReturn(validExercise);
 
 
-//    @BeforeEach
-//    public void setup() {
-//        benchPress = new ExerciseRequest(
-//                "Bench Press",
-//                Set.of(Muscle.MIDDLE_CHEST),
-//                Set.of(Muscle.SHORT_HEAD_TRICEPS, Muscle.FRONT_DELTS),
-//                ""
-//        );
-//
-//        squat = new ExerciseRequest(
-//                "Squat",
-//                Set.of(Muscle.QUADS),
-//                Set.of(Muscle.MAXIMUS_GLUTES),
-//                ""
-//        );
-//
-//        upperBackRow = new ExerciseRequest(
-//                "Upper Back Row",
-//                Set.of(Muscle.RHOMBOIDS_UPPER_BACK, Muscle.TRAPEZIUS_UPPER_BACK, Muscle.TERES_MAJOR_UPPER_BACK),
-//                Set.of(Muscle.SHORT_HEAD_BICEPS, Muscle.REAR_DELTS, Muscle.LONG_HEAD_BICEPS),
-//                ""
-//        );
-//
-//        chinUps = new ExerciseRequest(
-//                "Chin Ups",
-//                Set.of(Muscle.LATS, Muscle.SHORT_HEAD_BICEPS, Muscle.LONG_HEAD_BICEPS),
-//                Set.of(),
-//                ""
-//        );
-//    }
+        //Act
+        ExerciseResponse response = exerciseService.createExercise(request);
 
-//    @Test
-//    public void test_createExercise_and_Get(){
-//        Exercise exercise = exerciseService.createExercise(benchPress);
-//        Exercise exercise2 = exerciseService.createExercise(squat);
-//
-//        assertNotEquals(exercise, exercise2);
-//        assertNotEquals(exercise.getId(), exercise2.getId());
-//        assertNotEquals(exercise.getName(), exercise2.getName());
-//        assertNotEquals(exercise.getPrimaryMuscle(), exercise2.getPrimaryMuscle());
-//
-//        exerciseService.createExercise(chinUps);
-//        exerciseService.createExercise(upperBackRow);
-//
-//        List<Exercise> exercises = exerciseService.findAll();
-//        assertEquals(4, exercises.size());
-//    }
+        //Assert
+        assertThat(response)
+                .hasFieldOrPropertyWithValue("secondaryMuscles", Set.of());
+
+    }
+
+    @Test
+    @DisplayName("Should update the exercise")
+    void shouldUpdateExercise() {
+        //Arrange
+        ExerciseRequest request = new ExerciseRequest(
+                "Bench Press", validExercise.getPrimaryMuscles(), new HashSet<>(List.of(Muscle.MIDDLE_CHEST)),null);
+
+        when(exerciseRepository.save(any())).thenReturn(validExercise);
+        exerciseService.createExercise(request);
+
+        //After the exercise was created, now update it
+
+        Exercise exercise = Exercise.builder()
+                .name("Dips")
+                .primaryMuscles(new HashSet<>(Arrays.asList(Muscle.MIDDLE_CHEST, Muscle.SHORT_HEAD_TRICEPS, Muscle.MEDIAL_HEAD_TRICEPS)))
+                .id(1L)
+                .build();
+
+        ExerciseRequest request2 = new ExerciseRequest(exercise.getName(),
+                exercise.getPrimaryMuscles(), exercise.getSecondaryMuscles(),exercise.getDescription());
+
+        when(exerciseRepository.save(any())).thenReturn(exercise);
+        when(exerciseRepository.findById(any())).thenReturn(Optional.of(validExercise));
+
+        //Act
+        ExerciseResponse response = exerciseService.updateExercise(1L, request2);
+
+        //Assert
+        assertThat(response)
+                .hasFieldOrPropertyWithValue("primaryMuscles", Set.of(Muscle.SHORT_HEAD_TRICEPS, Muscle.MIDDLE_CHEST, Muscle.MEDIAL_HEAD_TRICEPS))
+                .hasFieldOrPropertyWithValue("name", "Dips");
+    }
+
+
 }

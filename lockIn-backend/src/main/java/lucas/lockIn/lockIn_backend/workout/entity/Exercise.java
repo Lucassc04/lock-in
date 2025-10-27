@@ -1,6 +1,7 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class Exercise {
     @Enumerated(EnumType.STRING)
     @ElementCollection
     @Column(nullable = false)
+    @NotEmpty(message = "The exercise must have at least one primary muscle")
     private Set<Muscle> primaryMuscles = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
