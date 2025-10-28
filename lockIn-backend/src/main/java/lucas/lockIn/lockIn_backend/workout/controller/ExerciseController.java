@@ -3,6 +3,7 @@ package lucas.lockIn.lockIn_backend.workout.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
+import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
@@ -21,25 +22,29 @@ import java.util.List;
 public class ExerciseController {
 
     private final ExerciseService exerciseService;
+    private final UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Exercise> getExercise(@PathVariable Long id) {
-        Exercise exercise = exerciseService.findById(id);
+    public ResponseEntity<Exercise> getExercise(@PathVariable Long id, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        Exercise exercise = exerciseService.findByCreatorId(userPrincipal.getUserId(), id);
         return ResponseEntity.ok(exercise);
     }
 
     @GetMapping()
-    public ResponseEntity<List<Exercise>> getAllExercises() {
-        List<Exercise> exerciseList = exerciseService.findAll();
+    public ResponseEntity<List<Exercise>> getAllExercises(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        List<Exercise> exerciseList = exerciseService.findAllByCreatorId(userPrincipal.getUserId());
         return ResponseEntity.ok(exerciseList);
     }
 
     @PostMapping()
-    public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest) {
-        if(exerciseRequest.name().isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
-        ExerciseResponse exercise = exerciseService.createExercise(exerciseRequest);
+    public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        ExerciseResponse exercise = exerciseService.createExercise(userPrincipal.getUserId(), exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(exercise.id())
@@ -47,12 +52,11 @@ public class ExerciseController {
         return ResponseEntity.created(location).build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable long id) {
-        if(exerciseRequest.name().isEmpty()){
-            return ResponseEntity.badRequest().build();
-        }
-        ExerciseResponse exercise = exerciseService.updateExercise(id, exerciseRequest);
+    @PutMapping("/{exerciseId}")
+    public ResponseEntity<?> updateExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable Long exerciseId, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        ExerciseResponse exercise = exerciseService.updateExercise(userPrincipal.getUserId(), exerciseId, exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(exercise.id())
@@ -61,8 +65,9 @@ public class ExerciseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteExercise(@PathVariable Long id) {
-        exerciseService.deleteExercise(id);
+    public ResponseEntity<?> deleteExercise(@PathVariable Long id, Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        exerciseService.deleteExercise(userPrincipal.getUserId(), id);
         return ResponseEntity.noContent().build();
     }
 

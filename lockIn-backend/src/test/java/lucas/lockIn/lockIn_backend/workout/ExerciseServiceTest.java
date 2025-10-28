@@ -1,5 +1,8 @@
 package lucas.lockIn.lockIn_backend.workout;
 
+import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.repository.UserRepository;
+import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
@@ -13,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,6 +36,9 @@ public class ExerciseServiceTest {
     @Spy
     private ExerciseMapperImpl exerciseMapper;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private ExerciseService exerciseService;
 
@@ -41,6 +46,9 @@ public class ExerciseServiceTest {
 
     @BeforeEach
     public void setUp() {
+        User mockUser = User.builder().id(0L).build();
+        when(userService.updateUserDomainDetails(any(), any())).thenReturn(mockUser);
+
         Set<Muscle> primaryMuscles = new HashSet<>(List.of(Muscle.MIDDLE_CHEST));
         Set<Muscle> secondaryMuscles
                 = new HashSet<>(Arrays.asList(Muscle.SHORT_HEAD_TRICEPS, Muscle.MEDIAL_HEAD_TRICEPS));
@@ -51,6 +59,7 @@ public class ExerciseServiceTest {
                 .secondaryMuscles(secondaryMuscles)
                 .description("With 20kg bar")
                 .id(1L)
+                .creator(mockUser)
                 .build();
     }
 
@@ -64,7 +73,7 @@ public class ExerciseServiceTest {
         when(exerciseRepository.save(any())).thenReturn(validExercise);
 
         //Act
-        ExerciseResponse response = exerciseService.createExercise(request);
+        ExerciseResponse response = exerciseService.createExercise(0L, request);
 
         //Assert
         assertThat(response)
@@ -89,7 +98,7 @@ public class ExerciseServiceTest {
 
 
         //Act
-        ExerciseResponse response = exerciseService.createExercise(request);
+        ExerciseResponse response = exerciseService.createExercise(0L, request);
 
         //Assert
         assertThat(response)
@@ -105,14 +114,17 @@ public class ExerciseServiceTest {
                 "Bench Press", validExercise.getPrimaryMuscles(), new HashSet<>(List.of(Muscle.MIDDLE_CHEST)),null);
 
         when(exerciseRepository.save(any())).thenReturn(validExercise);
-        exerciseService.createExercise(request);
+        exerciseService.createExercise(0L, request);
 
         //After the exercise was created, now update it
+        User user = User.builder()
+                .id(0L).build();
 
         Exercise exercise = Exercise.builder()
                 .name("Dips")
                 .primaryMuscles(new HashSet<>(Arrays.asList(Muscle.MIDDLE_CHEST, Muscle.SHORT_HEAD_TRICEPS, Muscle.MEDIAL_HEAD_TRICEPS)))
                 .id(1L)
+                .creator(user)
                 .build();
 
         ExerciseRequest request2 = new ExerciseRequest(exercise.getName(),
@@ -122,13 +134,15 @@ public class ExerciseServiceTest {
         when(exerciseRepository.findById(any())).thenReturn(Optional.of(validExercise));
 
         //Act
-        ExerciseResponse response = exerciseService.updateExercise(1L, request2);
+        ExerciseResponse response = exerciseService.updateExercise(0L, 1L, request2);
 
         //Assert
         assertThat(response)
                 .hasFieldOrPropertyWithValue("primaryMuscles", Set.of(Muscle.SHORT_HEAD_TRICEPS, Muscle.MIDDLE_CHEST, Muscle.MEDIAL_HEAD_TRICEPS))
                 .hasFieldOrPropertyWithValue("name", "Dips");
     }
+
+
 
 
 }

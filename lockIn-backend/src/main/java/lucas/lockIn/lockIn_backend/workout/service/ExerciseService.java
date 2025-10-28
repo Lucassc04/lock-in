@@ -2,10 +2,14 @@ package lucas.lockIn.lockIn_backend.workout.service;
 
 
 import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.auth.dto.request.UserDomainDetailsRequest;
+import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +22,11 @@ import java.util.List;
 public class ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
+    private final UserService userService;
     private final ExerciseMapperImpl mapper;
 
     @Transactional
-    public Exercise findById(long id) {
+    public Exercise findById(Long id) {
         return exerciseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Exercise", id));
     }
@@ -32,7 +37,7 @@ public class ExerciseService {
     }
 
     @Transactional
-    public ExerciseResponse createExercise(ExerciseRequest exerciseDTO) {
+    public ExerciseResponse createExercise(Long userId, ExerciseRequest exerciseDTO) {
         Exercise exercise = new Exercise();
 
         exercise.setDescription(exerciseDTO.description());
@@ -44,14 +49,20 @@ public class ExerciseService {
             exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
             exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
         }
+        //Update user and add creator
+        User user = userService.updateUserDomainDetails(
+                userId, new UserDomainDetailsRequest(List.of(exercise), null, null));
+        exercise.setCreator(user);
+
         exercise = exerciseRepository.save(exercise);
 
         return mapper.toResponseDto(exercise);
     }
     @Transactional
-    public ExerciseResponse updateExercise(long id, ExerciseRequest newExercise) {
+    public ExerciseResponse updateExercise(Long userId, Long exerciseId, ExerciseRequest newExercise) {
 
-        Exercise exercise = findById(id);
+        Exercise exercise = findById(exerciseId);
+        verifyOwnership(userId, exercise);
 
         mapper.updateEntityFromDTO(newExercise, exercise);
 
@@ -65,8 +76,31 @@ public class ExerciseService {
         return mapper.toResponseDto(updated);
     }
 
-    public void deleteExercise(long id) {
-        exerciseRepository.deleteById(id);
+    @Transactional
+    public void deleteExercise(Long userId, Long exerciseId) {
+        Exercise exercise = findById(exerciseId);
+        verifyOwnership(userId, exercise);
+        exerciseRepository.deleteById(exerciseId);
     }
+
+    @Transactional
+    public Exercise findByCreatorId(Long userId, Long exerciseId) {
+        Exercise exercise = findById(exerciseId);
+
+        verifyOwnership(userId, exercise);
+        return exercise;
+    }
+
+    private static void verifyOwnership(Long userId, Exercise exercise) {
+        if(!exercise.getCreator().getId().equals(userId)){
+            throw new OwnershipError("Exercise does not belong to user!");
+        }
+    }
+
+    @Transactional
+    public List<Exercise> findAllByCreatorId(Long userId) {
+        return exerciseRepository.findAllByCreatorId(userId);
+    }
+
 
 }

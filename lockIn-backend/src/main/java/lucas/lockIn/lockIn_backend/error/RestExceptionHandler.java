@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidCredentialsException;
 import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidRefreshToken;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.exceptions.WorkoutUnfinished;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -78,6 +79,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(InvalidRefreshToken.class)
     public ResponseEntity<Object> handleInvalidRefreshToken(HttpServletRequest req, InvalidRefreshToken ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED);
+        errorResponse.setMessage(ex.getMessage());
+        return buildResponseEntity(errorResponse);
+    }
+
+    @ExceptionHandler(OwnershipError.class)
+    public ResponseEntity<Object> handleOwnershipError(HttpServletRequest req, OwnershipError ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST);
         errorResponse.setMessage(ex.getMessage());
         return buildResponseEntity(errorResponse);
     }
