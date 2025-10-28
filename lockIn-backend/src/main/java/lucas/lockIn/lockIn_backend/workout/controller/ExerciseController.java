@@ -1,11 +1,13 @@
 package lucas.lockIn.lockIn_backend.workout.controller;
 
 import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 

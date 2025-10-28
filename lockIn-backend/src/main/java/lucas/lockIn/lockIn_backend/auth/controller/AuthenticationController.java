@@ -21,15 +21,21 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid @NotNull RegisterRequest registerRequest){
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest registerRequest){
 
         UserPrincipal userPrincipal = authenticationService.registerUser(registerRequest);
         return ResponseEntity.status(200)
-                .body("You have been registered successfully! Please, log in" + userPrincipal);
+                .body(String.format(
+                        "You have been registered successfully! Please, log in.\nUsername: %s;\nUser Id: %s",
+                        userPrincipal.getUsername(),
+                        userPrincipal.getUserId()
+                ));
+
+
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid @NotNull LoginRequest loginRequest){
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest loginRequest){
         TokenResponse tokenResponse = authenticationService.loginUser(loginRequest);
 
         ResponseCookie cookie = authenticationService.requestRefreshCookie(

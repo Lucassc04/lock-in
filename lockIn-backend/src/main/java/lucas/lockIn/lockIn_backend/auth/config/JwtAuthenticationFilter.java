@@ -15,12 +15,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/v1/auth/");
+    }
+
 
     @Override
     protected void doFilterInternal(
@@ -41,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UserPrincipal userPrincipal = new UserPrincipal(userId, username);
                 UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(userPrincipal, null);
+                        new UsernamePasswordAuthenticationToken(userPrincipal, null, Collections.emptyList());
                 authenticationToken.setDetails(new WebAuthenticationDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);

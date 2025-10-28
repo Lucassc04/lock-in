@@ -8,9 +8,8 @@ server:
   port: 8080
 
 jwt:
-  secret: ${JWT_SECRET:your-default-secret-key-if-not-found}
-  expiration: ${JWT_EXPIRATION:8000}
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
 
 cookie:
-  secret: ${COOKIE_SECRET:your-default-secret-key-if-not-found}
-  expiration: ${COOKIE_EXPIRATION:9000000}
+  expiration: ${COOKIE_EXPIRATION}

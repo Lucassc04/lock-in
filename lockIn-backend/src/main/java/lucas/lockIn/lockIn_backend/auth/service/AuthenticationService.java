@@ -1,6 +1,7 @@
 package lucas.lockIn.lockIn_backend.auth.service;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.auth.dto.request.LoginRequest;
@@ -50,7 +51,7 @@ public class AuthenticationService {
      *
      * @throws jakarta.validation.ConstraintViolationException if validation fails
      */
-    public UserPrincipal registerUser(@Valid @NotNull RegisterRequest registerRequest) {
+    public UserPrincipal registerUser(@Valid RegisterRequest registerRequest) {
         return userService.createUser(registerRequest);
     }
 
@@ -62,7 +63,7 @@ public class AuthenticationService {
      *
      * @throws InvalidCredentialsException if the username or password is incorrect
      */
-    public TokenResponse loginUser(@Valid @NotNull LoginRequest loginRequest) {
+    public TokenResponse loginUser(@Valid LoginRequest loginRequest) {
         try {
             User user = userService.verifyLogIn(loginRequest);
             String token = jwtService.generateToken(user.getUsername(), user.getId());
@@ -80,7 +81,7 @@ public class AuthenticationService {
      *
      * @throws InvalidRefreshToken if the provided refresh token is invalid or expired
      */
-    public TokenResponse requestAccessToken(@NotNull String refreshCookie) {
+    public TokenResponse requestAccessToken(@NotBlank String refreshCookie) {
         boolean validated = jwtService.validateToken(refreshCookie);
         if (validated) {
             String username = jwtService.extractUsername(refreshCookie);

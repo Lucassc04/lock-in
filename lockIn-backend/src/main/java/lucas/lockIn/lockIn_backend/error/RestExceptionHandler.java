@@ -67,14 +67,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(errorResponse);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleMethodArgumentNotValidException(HttpServletRequest req, MethodArgumentNotValidException ex){
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST);
-        errorResponse.setMessage(ex.getMessage());
-
-        return buildResponseEntity(errorResponse);
-    }
-
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Object> handleInvalidCredentialsException(HttpServletRequest req, InvalidCredentialsException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED);

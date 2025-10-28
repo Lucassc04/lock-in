@@ -3,12 +3,14 @@ package lucas.lockIn.lockIn_backend.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -30,8 +32,9 @@ public class JwtService {
      *
      * @return SecretKey object used for signing and verifying JWT tokens
      */
-    private SecretKey getTokenSigningKey(){
-        return Keys.hmacShaKeyFor(tokenSecretKey.getBytes(StandardCharsets.UTF_8));
+    private SecretKey getTokenSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(tokenSecretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**
@@ -64,7 +67,10 @@ public class JwtService {
      * @return a signed JWT access token string if access is true, refresh token string if not
      */
     public String generateToken(String username, Long userId){
-            return Jwts.builder()
+        SecretKey key = getTokenSigningKey();
+        System.out.println(">>> GENERATING with key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
+
+        return Jwts.builder()
                     .subject(username)
                     .claim("userId", userId)
                     .issuedAt(new Date())
@@ -132,6 +138,9 @@ public class JwtService {
      * @throws JwtException if the token is invalid or signature verification fails
      */
     private Claims extractAllClaims(String token) throws JwtException {
+        SecretKey key = getTokenSigningKey();
+        System.out.println(">>> VALIDATING with key: " + Base64.getEncoder().encodeToString(key.getEncoded()));
+
         return Jwts.parser()
                 .verifyWith(getTokenSigningKey())
                 .build()
