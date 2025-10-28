@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lucas.lockIn.lockIn_backend.auth.entity.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,6 +30,10 @@ public class Workout {
     private LocalDateTime finishTime;
 
     private Duration duration;
+
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
 
     @Lob
     @Column(columnDefinition = "TEXT")

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lucas.lockIn.lockIn_backend.auth.entity.User;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +37,10 @@ public class Exercise {
     @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name="creator_id")
+    private User creator;
 
     public Exercise(){}
 }

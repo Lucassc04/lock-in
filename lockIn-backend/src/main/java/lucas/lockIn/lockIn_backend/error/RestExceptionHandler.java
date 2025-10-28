@@ -1,7 +1,9 @@
-package lucas.lockIn.lockIn_backend.workout.controller.error;
+package lucas.lockIn.lockIn_backend.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
+import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidCredentialsException;
+import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidRefreshToken;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import lucas.lockIn.lockIn_backend.workout.exceptions.WorkoutUnfinished;
 import org.springframework.core.Ordered;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -61,6 +64,21 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST);
         errorResponse.setMessage(message);
 
+        return buildResponseEntity(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentialsException(HttpServletRequest req, InvalidCredentialsException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED);
+        errorResponse.setMessage(ex.getMessage());
+
+        return buildResponseEntity(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidRefreshToken.class)
+    public ResponseEntity<Object> handleInvalidRefreshToken(HttpServletRequest req, InvalidRefreshToken ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED);
+        errorResponse.setMessage(ex.getMessage());
         return buildResponseEntity(errorResponse);
     }
 

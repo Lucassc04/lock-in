@@ -1,0 +1,84 @@
+
+### POST exercises
+
+POST http://localhost:8080/api/v1/exercise
+Content-Type: application/json
+
+{
+  "name": "Pec Fly",
+  "primaryMuscles": ["MIDDLE_CHEST"],
+  "secondaryMuscles": ["FRONT_DELT"]
+}
+
+###
+
+POST http://localhost:8080/api/v1/exercise
+Content-Type: application/json
+
+{
+  "name": "Tricep Extension",
+  "primaryMuscles": ["SHORT_HEAD_TRICEPS", "MEDIAL_HEAD_TRICEPS"],
+  "secondaryMuscles": []
+}
+
+###
+
+POST http://localhost:8080/api/v1/exercise
+Content-Type: application/json
+
+{
+  "name": "Shoulder Press",
+  "primaryMuscles": ["FRONT_DELT"],
+  "secondaryMuscles": []
+}
+
+###
+
+POST http://localhost:8080/api/v1/workoutPlan
+Content-Type: application/json
+
+{
+  "name": "Chest Day",
+  "series": [
+    {"exerciseId": 2, "series": 3},
+    {"exerciseId": 1, "series": 2},
+    {"exerciseId": 3, "series": 3}
+  ]
+}
+
+###
+
+GET  http://localhost:8080/api/v1/workoutPlan
+
+###
+PUT http://localhost:8080/api/v1/exercise/2
+Content-Type: application/json
+
+{
+  "name": "Triceps Extension",
+  "primaryMuscles": ["SHORT_HEAD_TRICEPS", "MEDIAL_HEAD_TRICEPS"],
+  "secondaryMuscles": [],
+  "description": "Keep elbows at a 30º degree angle, shoulders locked in."
+}
+
+###
+POST http://localhost:8080/api/v1/workout/start?workoutPlanId=1
+
+###
+PATCH http://localhost:8080/api/v1/workout/1/finish
+Content-Type: application/json
+
+{
+  "notes": "Good workout. Progressively overloaded.",
+  "workingSeries": [
+    {"exerciseId": 1, "repetitions": 6, "weight": 40},
+    {"exerciseId": 1, "repetitions": 7, "weight": 40},
+    {"exerciseId": 2, "repetitions": 6, "weight": 50, "series": 2},
+    {"exerciseId": 2, "repetitions": 4, "weight": 50},
+    {"exerciseId": 3, "repetitions": 8, "weight": 20},
+    {"exerciseId": 3, "repetitions": 7, "weight": 20},
+    {"exerciseId": 3, "repetitions": 8, "weight": 30}  ]
+}
+
+###
+GET  http://localhost:8080/api/v1/workout
