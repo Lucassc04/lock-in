@@ -1,19 +1,22 @@
 package lucas.lockIn.lockIn_backend.workout.service;
 
 import lombok.AllArgsConstructor;
+import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.request.PlannedSeriesRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.PlannedSeries;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutPlanMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -23,6 +26,7 @@ public class WorkoutPlanService {
 
     private final WorkoutPlanRepository workoutPlanRepository;
     private final ExerciseService exerciseService;
+    private final UserService userService;
     private final WorkoutPlanMapperImpl mapper;
 
 
@@ -35,19 +39,22 @@ public class WorkoutPlanService {
         return mapper.toResponseList(workoutPlanRepository.findAll());
     }
 
-    public WorkoutPlanResponse createWorkoutPlan(WorkoutPlanRequest workoutPlanRequest) {
+    public WorkoutPlanResponse findByIdForUser(Long userId, Long workoutPlanId) {
+        return mapper.toResponse(workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId)));
+    }
+
+    public List<WorkoutPlanResponse> findAllForUser(Long userId) {
+        return mapper.toResponseList(workoutPlanRepository.findAllByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Workout Plan", userId)));
+    }
+
+    public WorkoutPlanResponse createWorkoutPlan(Long userId, WorkoutPlanRequest workoutPlanRequest) {
         WorkoutPlan workoutPlan = new WorkoutPlan();
 
-        workoutPlan.setName(workoutPlanRequest.name());
-        workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
-
-        workoutPlan = workoutPlanRepository.save(workoutPlan);
-        return mapper.toResponse(workoutPlan);
-    }
-
-
-    public WorkoutPlanResponse updateWorkoutPlan(Long id, WorkoutPlanRequest workoutPlanRequest) {
-        WorkoutPlan workoutPlan = mapper.toEntity(findById(id));
+        User user =  userService.findById(userId);
+        workoutPlan.setCreator(user);
+        workoutPlan.setUsers(new HashSet<>(List.of(user)));
 
         workoutPlan.setName(workoutPlanRequest.name());
         workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
@@ -56,8 +63,34 @@ public class WorkoutPlanService {
         return mapper.toResponse(workoutPlan);
     }
 
-    public void deleteWorkoutPlan(Long id) {
-        workoutPlanRepository.deleteById(id);
+
+    public WorkoutPlanResponse updateWorkoutPlan(Long userId, Long workoutPlanId, WorkoutPlanRequest workoutPlanRequest) {
+        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(userId, workoutPlanId));
+
+        if(!userIsOwner(workoutPlan, userId)) {
+            throw new OwnershipError("Workout Plan doesn't belong to this user");
+        }
+
+        workoutPlan.setName(workoutPlanRequest.name());
+        workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
+
+        workoutPlan = workoutPlanRepository.save(workoutPlan);
+        return mapper.toResponse(workoutPlan);
+    }
+
+
+    public void deleteWorkoutPlan(Long userId, Long workoutPlanId) {
+        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(userId, workoutPlanId));
+
+        if(userIsOwner(workoutPlan, userId)) {
+            workoutPlanRepository.delete(workoutPlan);
+            return;
+        }
+        throw new OwnershipError("Workout Plan doesn't belong to this user");
+    }
+
+    private boolean userIsOwner(WorkoutPlan workoutPlan, Long userId) {
+        return workoutPlan.getCreator().getId().equals(userId);
     }
 
     /**

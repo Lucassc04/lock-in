@@ -5,6 +5,7 @@ import lombok.*;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class represents a workout plan to be followed during a workout.
@@ -25,6 +26,12 @@ public class WorkoutPlan {
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<PlannedSeries> series;
+
+    @ManyToMany(mappedBy = "workoutPlans")
+    private Set<User> users;
+
+    @OneToOne
+    private User creator;
 
     public WorkoutPlan(){}
 
