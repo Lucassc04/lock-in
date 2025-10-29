@@ -2,7 +2,6 @@ package lucas.lockIn.lockIn_backend.workout.service;
 
 
 import lombok.AllArgsConstructor;
-import lucas.lockIn.lockIn_backend.auth.dto.request.UserDomainDetailsRequest;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
@@ -37,6 +36,17 @@ public class ExerciseService {
     }
 
     @Transactional
+    public Exercise findByIdForUser(Long userId, Long exerciseId) {
+       return exerciseRepository.findByIdAndUserId(userId, exerciseId)
+                .orElseThrow(() -> new EntityNotFoundException("Exercise", exerciseId));
+    }
+
+    @Transactional
+    public List<Exercise> findAllByCreatorId(Long userId) {
+        return exerciseRepository.findAllByCreatorId(userId);
+    }
+
+    @Transactional
     public ExerciseResponse createExercise(Long userId, ExerciseRequest exerciseDTO) {
         Exercise exercise = new Exercise();
 
@@ -50,8 +60,7 @@ public class ExerciseService {
             exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
         }
         //Update user and add creator
-        User user = userService.updateUserDomainDetails(
-                userId, new UserDomainDetailsRequest(List.of(exercise), null, null));
+        User user = userService.findById(userId);
         exercise.setCreator(user);
 
         exercise = exerciseRepository.save(exercise);
@@ -61,8 +70,8 @@ public class ExerciseService {
     @Transactional
     public ExerciseResponse updateExercise(Long userId, Long exerciseId, ExerciseRequest newExercise) {
 
-        Exercise exercise = findById(exerciseId);
-        verifyOwnership(userId, exercise);
+        Exercise exercise = findByIdForUser(userId, exerciseId);
+
 
         mapper.updateEntityFromDTO(newExercise, exercise);
 
@@ -78,29 +87,10 @@ public class ExerciseService {
 
     @Transactional
     public void deleteExercise(Long userId, Long exerciseId) {
-        Exercise exercise = findById(exerciseId);
-        verifyOwnership(userId, exercise);
+        Exercise exercise = findByIdForUser(userId, exerciseId);
+        if(!exercise.getCreator().getId().equals(userId)){
+            throw new OwnershipError("Exercise does not belong to the user");
+        }
         exerciseRepository.deleteById(exerciseId);
     }
-
-    @Transactional
-    public Exercise findByCreatorId(Long userId, Long exerciseId) {
-        Exercise exercise = findById(exerciseId);
-
-        verifyOwnership(userId, exercise);
-        return exercise;
-    }
-
-    private static void verifyOwnership(Long userId, Exercise exercise) {
-        if(!exercise.getCreator().getId().equals(userId)){
-            throw new OwnershipError("Exercise does not belong to user!");
-        }
-    }
-
-    @Transactional
-    public List<Exercise> findAllByCreatorId(Long userId) {
-        return exerciseRepository.findAllByCreatorId(userId);
-    }
-
-
 }

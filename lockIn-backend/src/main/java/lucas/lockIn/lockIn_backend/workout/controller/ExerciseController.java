@@ -9,7 +9,7 @@ import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,25 +25,19 @@ public class ExerciseController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Exercise> getExercise(@PathVariable Long id, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
-        Exercise exercise = exerciseService.findByCreatorId(userPrincipal.getUserId(), id);
+    public ResponseEntity<Exercise> getExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Exercise exercise = exerciseService.findByIdForUser(userPrincipal.getUserId(), id);
         return ResponseEntity.ok(exercise);
     }
 
     @GetMapping()
-    public ResponseEntity<List<Exercise>> getAllExercises(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
+    public ResponseEntity<List<Exercise>> getAllExercises(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         List<Exercise> exerciseList = exerciseService.findAllByCreatorId(userPrincipal.getUserId());
         return ResponseEntity.ok(exerciseList);
     }
 
     @PostMapping()
-    public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
+    public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         ExerciseResponse exercise = exerciseService.createExercise(userPrincipal.getUserId(), exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -53,8 +47,8 @@ public class ExerciseController {
     }
 
     @PutMapping("/{exerciseId}")
-    public ResponseEntity<?> updateExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable Long exerciseId, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+    public ResponseEntity<?> updateExercise(
+            @RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable Long exerciseId, @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
         ExerciseResponse exercise = exerciseService.updateExercise(userPrincipal.getUserId(), exerciseId, exerciseRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -65,8 +59,7 @@ public class ExerciseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteExercise(@PathVariable Long id, Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+    public ResponseEntity<?> deleteExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         exerciseService.deleteExercise(userPrincipal.getUserId(), id);
         return ResponseEntity.noContent().build();
     }

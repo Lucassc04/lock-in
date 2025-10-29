@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -46,13 +47,13 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "workout_plan_id")
     )
-    private List<WorkoutPlan> workoutPlans;
+    private Set<WorkoutPlan> workoutPlans;
 
     @OneToMany(mappedBy="user", cascade=CascadeType.ALL)
-    private List<Workout> workouts;
+    private Set<Workout> workouts;
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
-    private List<Exercise> exercises;
+    private Set<Exercise> exercises;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -8,10 +8,15 @@ import lucas.lockIn.lockIn_backend.auth.entity.Role;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
 import lucas.lockIn.lockIn_backend.auth.repository.UserRepository;
+import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
+import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import lucas.lockIn.lockIn_backend.auth.exceptions.InvalidCredentialsException;
+import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutPlanMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -65,15 +70,5 @@ public class UserService {
         user.setFirstName(registerRequest.firstName());
         user.setLastName(registerRequest.lastName());
         user.setRole(Role.USER);
-    }
-
-    public User updateUserDomainDetails(Long userId, UserDomainDetailsRequest userDetails) {
-        User user = findById(userId);
-
-        if(userDetails.exercises()!= null) user.getExercises().addAll(userDetails.exercises());
-        if(userDetails.workoutPlans() != null) user.getWorkoutPlans().addAll(userDetails.workoutPlans());
-        if(userDetails.workouts() != null) user.getWorkouts().addAll(userDetails.workouts());
-
-        return userRepository.save(user);
     }
 }

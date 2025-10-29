@@ -47,7 +47,6 @@ public class ExerciseServiceTest {
     @BeforeEach
     public void setUp() {
         User mockUser = User.builder().id(0L).build();
-        when(userService.updateUserDomainDetails(any(), any())).thenReturn(mockUser);
 
         Set<Muscle> primaryMuscles = new HashSet<>(List.of(Muscle.MIDDLE_CHEST));
         Set<Muscle> secondaryMuscles
