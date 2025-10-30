@@ -1,5 +1,6 @@
 package lucas.lockIn.lockIn_backend.workout;
 
+import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
 import lucas.lockIn.lockIn_backend.workout.dto.request.*;
 import lucas.lockIn.lockIn_backend.workout.dto.response.*;
@@ -70,6 +71,7 @@ public class WorkoutServiceTest {
     private WorkoutPlan validPlan;
     private LocalDateTime startTime;
     private LocalDateTime finishTime;
+    private User mockUser;
 
     @BeforeEach
     public void setUp() {
@@ -77,6 +79,10 @@ public class WorkoutServiceTest {
         ReflectionTestUtils.setField(executedWorkoutPlanMapper, "seriesMapper", seriesMapper);
         ReflectionTestUtils.setField(seriesMapper, "exerciseMapper", exerciseMapper);
 
+        mockUser = User.builder()
+                .id(0L)
+                .email("email@email.com")
+                .build();
         startTime = LocalDateTime.now().minusHours(1);
         finishTime = LocalDateTime.now();
 
@@ -96,6 +102,7 @@ public class WorkoutServiceTest {
 
         validWorkout = new Workout();
         validWorkout.setId(1L);
+        validWorkout.setUser(mockUser);
         validWorkout.setWorkoutPlan(validPlan);
         validWorkout.setExecutedWorkoutPlan(executedWorkoutPlan);
         validWorkout.setStartTime(startTime);
@@ -140,18 +147,45 @@ public class WorkoutServiceTest {
     }
 
     @Test
+    @DisplayName("Should return user workout")
+    void shouldReturnUserWorkout() {
+        when(workoutRepository.findByIdAndUserId(validWorkout.getId(), mockUser.getId()))
+                .thenReturn(Optional.of(validWorkout));
+
+        WorkoutResponse response = workoutService.findByIdForUser(validWorkout.getId(), mockUser.getId());
+
+        assertThat(response)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", 1L);
+    }
+
+    @Test
+    @DisplayName("Should return list of user workout")
+    void shouldReturnListOfUserWorkout() {
+        when(workoutRepository.findAllByUserId(mockUser.getId())).thenReturn(List.of(validWorkout));
+
+        List<WorkoutResponse> response = workoutService.findAllForUser(mockUser.getId());
+
+        assertThat(response)
+                .isNotEmpty()
+                .hasSize(1)
+                .extracting("id")
+                .containsExactly(1L);
+    }
+
+    @Test
     @DisplayName("Should create workout with plan")
-    void shouldCreateWorkoutWithPlan() {
+    void shouldPostWorkoutWithPlan() {
         WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(1L, 50.0, 10, 3);
         ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), null, "Nice workout");
         WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime);
 
-        when(workoutPlanRepository.findById(1L)).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUserId(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
         when(exerciseService.findById(1L)).thenReturn(validExercise);
         when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
-        WorkoutResponse response = workoutService.createWorkout(workoutRequest, 1L);
+        WorkoutResponse response = workoutService.postWorkout(workoutRequest, 1L, mockUser.getId());
 
         assertThat(response)
                 .isNotNull()
@@ -160,7 +194,7 @@ public class WorkoutServiceTest {
 
     @Test
     @DisplayName("Should create workout without plan (null planId)")
-    void shouldCreateWorkoutWithoutPlan() {
+    void shouldPostWorkoutWithoutPlan() {
         WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(1L, 40.0, 12, 3);
         ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), null, null);
         WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime);
@@ -169,7 +203,7 @@ public class WorkoutServiceTest {
         when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
-        WorkoutResponse response = workoutService.createWorkout(workoutRequest, null);
+        WorkoutResponse response = workoutService.postWorkout(workoutRequest, null,  mockUser.getId());
 
         assertThat(response)
                 .isNotNull()
@@ -184,8 +218,9 @@ public class WorkoutServiceTest {
             w.setId(1L);
             return w;
         });
+        when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.empty());
 
-        CurrentWorkoutDTO dto = workoutService.startWorkout(null);
+        CurrentWorkoutDTO dto = workoutService.startWorkout(null, mockUser.getId());
 
         assertThat(dto)
                 .isNotNull()
@@ -195,14 +230,14 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should start workout with plan")
     void shouldStartWorkoutWithPlan() {
-        when(workoutPlanRepository.findById(1L)).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.of(validPlan));
         when(workoutRepository.save(any())).thenAnswer(invocation -> {
             Workout w = invocation.getArgument(0);
             w.setId(1L);
             return w;
         });
 
-        CurrentWorkoutDTO dto = workoutService.startWorkout(1L);
+        CurrentWorkoutDTO dto = workoutService.startWorkout(validPlan.getId(), mockUser.getId());
 
         assertThat(dto)
                 .isNotNull()
@@ -216,12 +251,12 @@ public class WorkoutServiceTest {
         WarmupSeriesRequest warmupSeriesRequest = new WarmupSeriesRequest(1L, 20.0, 10, 1);
         ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), List.of(warmupSeriesRequest), "Good session");
 
-        when(workoutRepository.findById(1L)).thenReturn(Optional.of(validWorkout));
+        when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.of(validWorkout));
         when(exerciseService.findById(1L)).thenReturn(validExercise);
         when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
-        WorkoutResponse response = workoutService.finishWorkout(1L, executedRequest);
+        WorkoutResponse response = workoutService.finishWorkout(mockUser.getId(), executedRequest);
 
         assertThat(response)
                 .isNotNull()
@@ -231,12 +266,12 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should throw when finishing non-existent workout")
     void shouldThrowWhenFinishingNonexistentWorkout() {
-        when(workoutRepository.findById(any())).thenReturn(Optional.empty());
+        when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.empty());
 
         ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(), null, null);
 
         assertThatThrownBy(() -> workoutService.finishWorkout(99L, executedRequest))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Workout");
+                .hasMessageContaining("workout");
     }
 }

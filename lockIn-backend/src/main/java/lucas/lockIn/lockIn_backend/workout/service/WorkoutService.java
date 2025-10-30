@@ -10,7 +10,7 @@ import lucas.lockIn.lockIn_backend.workout.dto.request.ExecutedWorkoutPlanReques
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.*;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
-import lucas.lockIn.lockIn_backend.workout.mapper.ExecutedWorkoutPlanMapper;
+import lucas.lockIn.lockIn_backend.workout.exceptions.WorkoutUnfinished;
 import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutMapper;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanExecutedRepository;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
@@ -21,12 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class WorkoutService {
 
     private final WorkoutRepository workoutRepository;
@@ -35,24 +34,31 @@ public class WorkoutService {
     private final ExerciseService exerciseService;
     private final WorkoutMapper mapper;
 
-    @Transactional
     public WorkoutResponse findById(Long id) {
         return mapper.toResponse(workoutRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Workout", id)));
     }
 
-    @Transactional
     public List<WorkoutResponse> findAll() {
         return mapper.toResponseList(workoutRepository.findAll());
     }
 
-    @Transactional
-    public WorkoutResponse createWorkout(WorkoutRequest workoutRequest, Long workoutPlanId) {
+    public WorkoutResponse findByIdForUser(Long id, Long userId) {
+        return mapper.toResponse(workoutRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Workout", id)));
+    }
+
+    public List<WorkoutResponse> findAllForUser(Long userId) {
+        return mapper.toResponseList(workoutRepository.findAllByUserId(userId));
+    }
+
+
+    public WorkoutResponse postWorkout(WorkoutRequest workoutRequest, Long workoutPlanId, Long userId) {
         Workout workout = new  Workout();
 
         //if the user choose a plan to follow during the workout
         if (workoutPlanId != null) {
-            WorkoutPlan workoutPlan = workoutPlanRepository.findById(workoutPlanId)
+            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
                     .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId));
             workout.setWorkoutPlan(workoutPlan);
         }
@@ -71,12 +77,14 @@ public class WorkoutService {
         return mapper.toResponse(workout);
     }
 
-    @Transactional
-    public CurrentWorkoutDTO startWorkout(@Nullable Long workoutPlanId) {
+    public CurrentWorkoutDTO startWorkout(@Nullable Long workoutPlanId, Long userId) {
+        if(hasOngoingWorkout(userId)){
+            throw new WorkoutUnfinished("A workout is still ongoing! Finish before you can start another workout!");
+        }
         Workout workout = new Workout();
         //if the user choose a plan to follow during the workout
         if (workoutPlanId != null) {
-            WorkoutPlan workoutPlan = workoutPlanRepository.findById(workoutPlanId)
+            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
                     .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId));
             workout.setWorkoutPlan(workoutPlan);
         }
@@ -86,10 +94,13 @@ public class WorkoutService {
         return mapper.toCurrent(workout);
     }
 
-    @Transactional
-    public WorkoutResponse finishWorkout(Long id, ExecutedWorkoutPlanRequest executedWorkoutPlanRequest) {
-        Workout workout = workoutRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Workout", id));
+    public void cancelOngoingWorkout(Long userId) {
+        workoutRepository.deleteOngoingWorkout(userId);
+    }
+
+    public WorkoutResponse finishWorkout(Long userId, ExecutedWorkoutPlanRequest executedWorkoutPlanRequest) {
+        Workout workout = workoutRepository.findOngoingWorkout(userId).
+                orElseThrow(() -> new EntityNotFoundException("Ongoing workout by user", userId));
 
         ExecutedWorkoutPlan executedWorkoutPlan = new ExecutedWorkoutPlan();
         executedWorkoutPlan.setSeries(convertSeriesRequestToEntities(executedWorkoutPlanRequest));
@@ -159,5 +170,15 @@ public class WorkoutService {
      */
     private WarmupSeries fromRequest(WarmupSeriesRequest request) {
         return new WarmupSeries(exerciseService.findById(request.exerciseId()), 1, request.weight(), request.repetitions());
+    }
+
+    /**
+     * If a workout by the user does not have a finish time, means it has not been finished,
+     * i.e., it is still ongoing
+     * @param userId the user id
+     * @return true if the user has an ongoing workout
+     */
+    private boolean hasOngoingWorkout(Long userId) {
+        return workoutRepository.findOngoingWorkout(userId).isPresent();
     }
 }

@@ -3,7 +3,6 @@ package lucas.lockIn.lockIn_backend.workout.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
-import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
@@ -25,7 +24,7 @@ public class WorkoutPlanController {
     @GetMapping("/{id}")
     public ResponseEntity<WorkoutPlanResponse> getWorkoutPlan(@PathVariable Long id,
                                                               @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        return ResponseEntity.ok(workoutPlanService.findByIdForUser(userPrincipal.getUserId(), id));
+        return ResponseEntity.ok(workoutPlanService.findByIdForUser(id, userPrincipal.getUserId()));
     }
 
     @GetMapping()

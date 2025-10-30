@@ -39,7 +39,7 @@ public class WorkoutPlanService {
         return mapper.toResponseList(workoutPlanRepository.findAll());
     }
 
-    public WorkoutPlanResponse findByIdForUser(Long userId, Long workoutPlanId) {
+    public WorkoutPlanResponse findByIdForUser(Long workoutPlanId, Long userId) {
         return mapper.toResponse(workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId)));
     }
@@ -65,7 +65,7 @@ public class WorkoutPlanService {
 
 
     public WorkoutPlanResponse updateWorkoutPlan(Long userId, Long workoutPlanId, WorkoutPlanRequest workoutPlanRequest) {
-        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(userId, workoutPlanId));
+        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(workoutPlanId, userId));
 
         if(!userIsOwner(workoutPlan, userId)) {
             throw new OwnershipError("Workout Plan doesn't belong to this user");
@@ -80,7 +80,7 @@ public class WorkoutPlanService {
 
 
     public void deleteWorkoutPlan(Long userId, Long workoutPlanId) {
-        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(userId, workoutPlanId));
+        WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(workoutPlanId, userId));
 
         if(userIsOwner(workoutPlan, userId)) {
             workoutPlanRepository.delete(workoutPlan);
