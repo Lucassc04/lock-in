@@ -36,7 +36,7 @@ public class ExerciseService {
     }
 
     @Transactional
-    public Exercise findByIdForUser(Long userId, Long exerciseId) {
+    public Exercise findByIdForUser(Long exerciseId, Long userId) {
        return exerciseRepository.findByIdAndUserId(userId, exerciseId)
                 .orElseThrow(() -> new EntityNotFoundException("Exercise", exerciseId));
     }
@@ -70,7 +70,7 @@ public class ExerciseService {
     @Transactional
     public ExerciseResponse updateExercise(Long userId, Long exerciseId, ExerciseRequest newExercise) {
 
-        Exercise exercise = findByIdForUser(userId, exerciseId);
+        Exercise exercise = findByIdForUser(exerciseId, userId);
 
 
         mapper.updateEntityFromDTO(newExercise, exercise);
@@ -87,7 +87,7 @@ public class ExerciseService {
 
     @Transactional
     public void deleteExercise(Long userId, Long exerciseId) {
-        Exercise exercise = findByIdForUser(userId, exerciseId);
+        Exercise exercise = findByIdForUser(exerciseId, userId);
         if(!exercise.getCreator().getId().equals(userId)){
             throw new OwnershipError("Exercise does not belong to the user");
         }

@@ -26,7 +26,7 @@ public class ExerciseController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Exercise> getExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        Exercise exercise = exerciseService.findByIdForUser(userPrincipal.getUserId(), id);
+        Exercise exercise = exerciseService.findByIdForUser(id, userPrincipal.getUserId());
         return ResponseEntity.ok(exercise);
     }
 
