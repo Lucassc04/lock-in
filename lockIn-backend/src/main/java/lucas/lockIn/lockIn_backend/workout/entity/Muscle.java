@@ -17,7 +17,7 @@ public enum Muscle {
     //SHOULDER
     FRONT_DELTS,
     LATERAL_DELTS,
-    REAR_DELT,
+    REAR_DELTS,
 
     //ARMS
     LONG_HEAD_BICEPS,
@@ -31,7 +31,6 @@ public enum Muscle {
 
     //CORE
     ABS,
-    OBLIQUES,
 
     //LOWER BODY
     //GLUTES
@@ -39,7 +38,6 @@ public enum Muscle {
     MEDIUS_GLUTES,
     MINIMUS_GLUTES,
 
-    RECTUS_FEMORIS_QUADS,
     QUADS,
     HAMSTRING,
     ADDUCTORS,

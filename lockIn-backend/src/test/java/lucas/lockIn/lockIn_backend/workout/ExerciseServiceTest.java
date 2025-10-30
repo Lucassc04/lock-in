@@ -130,10 +130,10 @@ public class ExerciseServiceTest {
                 exercise.getPrimaryMuscles(), exercise.getSecondaryMuscles(),exercise.getDescription());
 
         when(exerciseRepository.save(any())).thenReturn(exercise);
-        when(exerciseRepository.findById(any())).thenReturn(Optional.of(validExercise));
+        when(exerciseRepository.findByIdAndUserId(user.getId(), validExercise.getId())).thenReturn(Optional.of(validExercise));
 
         //Act
-        ExerciseResponse response = exerciseService.updateExercise(0L, 1L, request2);
+        ExerciseResponse response = exerciseService.updateExercise(user.getId(), validExercise.getId(), request2);
 
         //Assert
         assertThat(response)
