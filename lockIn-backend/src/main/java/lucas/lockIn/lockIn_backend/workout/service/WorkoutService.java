@@ -58,7 +58,7 @@ public class WorkoutService {
 
         //if the user choose a plan to follow during the workout
         if (workoutPlanId != null) {
-            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
+            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUsers_Id(workoutPlanId, userId)
                     .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId));
             workout.setWorkoutPlan(workoutPlan);
         }
@@ -78,13 +78,13 @@ public class WorkoutService {
     }
 
     public CurrentWorkoutDTO startWorkout(@Nullable Long workoutPlanId, Long userId) {
-        if(hasOngoingWorkout(userId)){
+        if(userHasOngoingWorkout(userId)){
             throw new WorkoutUnfinished("A workout is still ongoing! Finish before you can start another workout!");
         }
         Workout workout = new Workout();
         //if the user choose a plan to follow during the workout
         if (workoutPlanId != null) {
-            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
+            WorkoutPlan workoutPlan = workoutPlanRepository.findByIdAndUsers_Id(workoutPlanId, userId)
                     .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId));
             workout.setWorkoutPlan(workoutPlan);
         }
@@ -178,7 +178,7 @@ public class WorkoutService {
      * @param userId the user id
      * @return true if the user has an ongoing workout
      */
-    private boolean hasOngoingWorkout(Long userId) {
+    private boolean userHasOngoingWorkout(Long userId) {
         return workoutRepository.findOngoingWorkout(userId).isPresent();
     }
 }

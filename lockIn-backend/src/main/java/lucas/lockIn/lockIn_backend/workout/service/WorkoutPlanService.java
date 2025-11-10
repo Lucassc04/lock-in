@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -40,21 +41,20 @@ public class WorkoutPlanService {
     }
 
     public WorkoutPlanResponse findByIdForUser(Long workoutPlanId, Long userId) {
-        return mapper.toResponse(workoutPlanRepository.findByIdAndUserId(workoutPlanId, userId)
+        return mapper.toResponse(workoutPlanRepository.findByIdAndUsers_Id(workoutPlanId, userId)
                 .orElseThrow(() -> new EntityNotFoundException("Workout Plan", workoutPlanId)));
     }
 
     public List<WorkoutPlanResponse> findAllForUser(Long userId) {
-        return mapper.toResponseList(workoutPlanRepository.findAllByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Workout Plan", userId)));
+        return mapper.toResponseList(workoutPlanRepository.findAllByUserId(userId));
     }
 
-    public WorkoutPlanResponse createWorkoutPlan(Long userId, WorkoutPlanRequest workoutPlanRequest) {
+    public WorkoutPlanResponse createWorkoutPlan(WorkoutPlanRequest workoutPlanRequest, Long userId) {
         WorkoutPlan workoutPlan = new WorkoutPlan();
 
         User user =  userService.findById(userId);
         workoutPlan.setCreator(user);
-        workoutPlan.setUsers(new HashSet<>(List.of(user)));
+        workoutPlan.addUsers(user);
 
         workoutPlan.setName(workoutPlanRequest.name());
         workoutPlan.setSeries(convertSeriesRequestToEntities(workoutPlanRequest.series()));
@@ -64,7 +64,7 @@ public class WorkoutPlanService {
     }
 
 
-    public WorkoutPlanResponse updateWorkoutPlan(Long userId, Long workoutPlanId, WorkoutPlanRequest workoutPlanRequest) {
+    public WorkoutPlanResponse updateWorkoutPlan(Long workoutPlanId, WorkoutPlanRequest workoutPlanRequest, Long userId) {
         WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(workoutPlanId, userId));
 
         if(!userIsOwner(workoutPlan, userId)) {
@@ -78,8 +78,18 @@ public class WorkoutPlanService {
         return mapper.toResponse(workoutPlan);
     }
 
+    public void subscribeToWorkoutPlan(Long workoutPlanId, Long userId) {
+        WorkoutPlan workoutPlan = mapper.toEntity(findById(workoutPlanId));
+        User user =  userService.findById(userId);
 
-    public void deleteWorkoutPlan(Long userId, Long workoutPlanId) {
+        if(workoutPlan.getUsers().contains(user)) {
+            return;
+        }
+        workoutPlan.addUsers(user);
+        workoutPlanRepository.save(workoutPlan);
+    }
+
+    public void deleteWorkoutPlan(Long workoutPlanId, Long userId) {
         WorkoutPlan workoutPlan = mapper.toEntity(findByIdForUser(workoutPlanId, userId));
 
         if(userIsOwner(workoutPlan, userId)) {
@@ -93,35 +103,13 @@ public class WorkoutPlanService {
         return workoutPlan.getCreator().getId().equals(userId);
     }
 
-    /**
-     * Converts series requests from a WorkoutPlanExecutedDTO into Series entities.
-     * <p>
-     * This method processes both working series and warmup series requests (if present),
-     * retrieves the associated exercises, and creates the corresponding Series entities.
-     * The result is a unified set containing all executed series from the workout.
-     * </p>
-     *
-     * @param series the request containing the exercise id and series
-     * @return a list of all Series entities executed in the workout
-     * @throws EntityNotFoundException if any exercise ID is not found
-     */
     private List<PlannedSeries> convertSeriesRequestToEntities(List<PlannedSeriesRequest> series) {
         return series.stream().
                 map(this::fromRequest).
                 collect(Collectors.toList());
     }
 
-    /**
-     * Creates a PlannedSeries entity from a request DTO.
-     * <p>
-     * Constructs a new planned series instance with the exercise reference and
-     * the weight and repetition values from the request.
-     * </p>
-     *
-     * @param request the DTO containing the exercise id and series
-     * @return a new PlannedSeries instance
-     */
     private PlannedSeries fromRequest(PlannedSeriesRequest request) {
-        return new PlannedSeries(exerciseService.findById(request.exerciseId()), request.series());
+        return new PlannedSeries(exerciseService.findByName(request.exerciseName()), request.series());
     }
 }

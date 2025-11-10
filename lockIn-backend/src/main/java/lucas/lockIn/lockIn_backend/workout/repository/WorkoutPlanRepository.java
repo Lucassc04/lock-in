@@ -14,15 +14,9 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan,Long> {
         SELECT wp
         FROM WorkoutPlan wp
         JOIN wp.users u
-        WHERE u.id = :userId AND wp.id = :workoutPlanId
-""")
-    Optional<WorkoutPlan> findByIdAndUserId(@Param("workoutPlanId") Long workoutPlanId, @Param("userId") Long userId);
-
-    @Query("""
-        SELECT wp
-        FROM WorkoutPlan wp
-        JOIN wp.users u
         WHERE u.id = :userId
 """)
-    Optional<List<WorkoutPlan>> findAllByUserId(@Param("userId") Long userId);
+    List<WorkoutPlan> findAllByUserId(@Param("userId") Long userId);
+
+    Optional<WorkoutPlan> findByIdAndUsers_Id(Long workoutPlanId, Long userId);
 }

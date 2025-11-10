@@ -19,6 +19,7 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
     FROM Exercise e
     WHERE e.creator.id = :userId AND e.id = :exerciseId
 """)
-    Optional<Exercise> findByIdAndUserId(@Param("userId") Long userId,
-                                         @Param("exerciseId") Long exerciseId);
+    Optional<Exercise> findByIdAndUserId(@Param("exerciseId") Long exerciseId, @Param("userId") Long userId);
+
+    Optional<Exercise> findByName(@Param("name") String name);
 }

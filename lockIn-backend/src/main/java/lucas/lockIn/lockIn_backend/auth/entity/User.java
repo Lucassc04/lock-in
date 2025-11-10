@@ -1,10 +1,7 @@
 package lucas.lockIn.lockIn_backend.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Workout;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
@@ -18,7 +15,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -41,12 +39,7 @@ public class User implements UserDetails {
     private Role role;
 
     //workout domain attributes
-    @ManyToMany
-    @JoinTable(
-            name = "user_workout_plan",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "workout_plan_id")
-    )
+    @ManyToMany(mappedBy = "users")
     private Set<WorkoutPlan> workoutPlans;
 
     @OneToMany(mappedBy="user", cascade=CascadeType.ALL)

@@ -25,20 +25,20 @@ public class ExerciseController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Exercise> getExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        Exercise exercise = exerciseService.findByIdForUser(id, userPrincipal.getUserId());
+    public ResponseEntity<?> getExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        ExerciseResponse exercise = exerciseService.findByIdForUser(id, userPrincipal.getUserId());
         return ResponseEntity.ok(exercise);
     }
 
     @GetMapping()
-    public ResponseEntity<List<Exercise>> getAllExercises(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        List<Exercise> exerciseList = exerciseService.findAllByCreatorId(userPrincipal.getUserId());
+    public ResponseEntity<?> getAllExercises(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        List<ExerciseResponse> exerciseList = exerciseService.findAllByCreatorId(userPrincipal.getUserId());
         return ResponseEntity.ok(exerciseList);
     }
 
     @PostMapping()
     public ResponseEntity<?> createExercise(@RequestBody @Valid ExerciseRequest exerciseRequest, @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        ExerciseResponse exercise = exerciseService.createExercise(userPrincipal.getUserId(), exerciseRequest);
+        ExerciseResponse exercise = exerciseService.createExercise(exerciseRequest, userPrincipal.getUserId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(exercise.id())
@@ -50,7 +50,7 @@ public class ExerciseController {
     public ResponseEntity<?> updateExercise(
             @RequestBody @Valid ExerciseRequest exerciseRequest, @PathVariable Long exerciseId, @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        ExerciseResponse exercise = exerciseService.updateExercise(userPrincipal.getUserId(), exerciseId, exerciseRequest);
+        ExerciseResponse exercise = exerciseService.updateExercise(exerciseId, exerciseRequest, userPrincipal.getUserId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(exercise.id())
@@ -60,7 +60,7 @@ public class ExerciseController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        exerciseService.deleteExercise(userPrincipal.getUserId(), id);
+        exerciseService.deleteExercise(id, userPrincipal.getUserId());
         return ResponseEntity.noContent().build();
     }
 

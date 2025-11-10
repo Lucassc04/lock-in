@@ -7,6 +7,7 @@ import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
+import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
@@ -14,7 +15,9 @@ import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @Service
@@ -31,31 +34,31 @@ public class ExerciseService {
     }
 
     @Transactional
-    public List<Exercise> findAll() {
-        return exerciseRepository.findAll();
+    public ExerciseResponse findByIdForUser(Long exerciseId, Long userId) {
+       return mapper.toResponseDto(exerciseRepository.findByIdAndUserId(exerciseId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Exercise", exerciseId)));
     }
 
     @Transactional
-    public Exercise findByIdForUser(Long exerciseId, Long userId) {
-       return exerciseRepository.findByIdAndUserId(userId, exerciseId)
-                .orElseThrow(() -> new EntityNotFoundException("Exercise", exerciseId));
+    public List<ExerciseResponse> findAllByCreatorId(Long userId) {
+        return mapper.toResponseDto(exerciseRepository.findAllByCreatorId(userId));
     }
 
     @Transactional
-    public List<Exercise> findAllByCreatorId(Long userId) {
-        return exerciseRepository.findAllByCreatorId(userId);
+    public Exercise findByName(String name) {
+        return exerciseRepository.findByName(name)
+                .orElseThrow(() -> new EntityNotFoundException("Exercise", name));
     }
 
     @Transactional
-    public ExerciseResponse createExercise(Long userId, ExerciseRequest exerciseDTO) {
+    public ExerciseResponse createExercise(ExerciseRequest exerciseDTO, Long userId) {
         Exercise exercise = new Exercise();
 
         exercise.setDescription(exerciseDTO.description());
         exercise.setName(exerciseDTO.name());
         exercise.setPrimaryMuscles(exerciseDTO.primaryMuscles());
 
-        //Optional operation, primaryMuscles movers can't be accessory muscles.
-        if(exerciseDTO.secondaryMuscles() != null){
+        if(exerciseDTO.secondaryMuscles() != null) {
             exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
             exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
         }
@@ -63,20 +66,22 @@ public class ExerciseService {
         User user = userService.findById(userId);
         exercise.setCreator(user);
 
-        exercise = exerciseRepository.save(exercise);
+        Exercise createdExercise = exerciseRepository.save(exercise);
 
-        return mapper.toResponseDto(exercise);
+        return mapper.toResponseDto(createdExercise);
     }
+
     @Transactional
-    public ExerciseResponse updateExercise(Long userId, Long exerciseId, ExerciseRequest newExercise) {
+    public ExerciseResponse updateExercise(Long exerciseId, ExerciseRequest newExercise, Long userId) {
 
-        Exercise exercise = findByIdForUser(exerciseId, userId);
+        Exercise exercise = findEntity(exerciseId, userId);
 
+        exercise.setName(newExercise.name());
+        exercise.setDescription(newExercise.description());
 
-        mapper.updateEntityFromDTO(newExercise, exercise);
+        exercise.setPrimaryMuscles(newExercise.primaryMuscles());
 
-        //Optional operation, primaryMuscles movers can't be accessory muscles.
-        if(newExercise.secondaryMuscles() != null){
+        if(newExercise.secondaryMuscles() != null) {
             newExercise.secondaryMuscles().removeAll(newExercise.primaryMuscles());
             exercise.setSecondaryMuscles(newExercise.secondaryMuscles());
         }
@@ -86,11 +91,16 @@ public class ExerciseService {
     }
 
     @Transactional
-    public void deleteExercise(Long userId, Long exerciseId) {
-        Exercise exercise = findByIdForUser(exerciseId, userId);
+    public void deleteExercise(Long exerciseId, Long userId) {
+        Exercise exercise = findEntity(exerciseId, userId);
         if(!exercise.getCreator().getId().equals(userId)){
             throw new OwnershipError("Exercise does not belong to the user");
         }
         exerciseRepository.deleteById(exerciseId);
+    }
+
+    private Exercise findEntity(Long exerciseId, Long userId) {
+        return exerciseRepository.findByIdAndUserId(exerciseId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Exercise", exerciseId));
     }
 }

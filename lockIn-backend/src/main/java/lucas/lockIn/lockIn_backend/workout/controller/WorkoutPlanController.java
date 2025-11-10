@@ -36,7 +36,7 @@ public class WorkoutPlanController {
     public ResponseEntity<WorkoutPlanResponse> createWorkoutPlan(@RequestBody @Valid WorkoutPlanRequest workoutPlan,
                                                                  @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        WorkoutPlanResponse newWorkoutPlan = workoutPlanService.createWorkoutPlan(userPrincipal.getUserId(), workoutPlan);
+        WorkoutPlanResponse newWorkoutPlan = workoutPlanService.createWorkoutPlan(workoutPlan, userPrincipal.getUserId());
         URI location =  ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
@@ -48,15 +48,22 @@ public class WorkoutPlanController {
     public ResponseEntity<WorkoutPlanResponse> updateWorkoutPlan(@PathVariable Long id,
                                                                  @RequestBody @Valid WorkoutPlanRequest workoutPlan,
                                                                  @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        WorkoutPlanResponse updatedWorkoutPlan = workoutPlanService.updateWorkoutPlan(userPrincipal.getUserId(), id, workoutPlan);
+        WorkoutPlanResponse updatedWorkoutPlan = workoutPlanService.updateWorkoutPlan(id, workoutPlan, userPrincipal.getUserId());
         return ResponseEntity.ok(updatedWorkoutPlan);
+    }
+
+    @PutMapping("/subscribe/{id}")
+    public ResponseEntity<?> subscribeToWorkoutPlan(@PathVariable Long id,
+                                                    @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        workoutPlanService.subscribeToWorkoutPlan(id, userPrincipal.getUserId());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteWorkoutPlan(@PathVariable Long id,
                                                @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        workoutPlanService.deleteWorkoutPlan(userPrincipal.getUserId(), id);
+        workoutPlanService.deleteWorkoutPlan(id, userPrincipal.getUserId());
         return ResponseEntity.ok().build();
     }
 }

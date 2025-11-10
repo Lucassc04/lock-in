@@ -24,7 +24,4 @@ public interface ExerciseMapper {
     List<ExerciseResponse> toResponseDto(List<Exercise> entities);
 
     List<Exercise> toEntity(List<ExerciseResponse> dtos);
-
-    @Mapping(target = "id", ignore = true)
-    void updateEntityFromDTO(ExerciseRequest dto, @MappingTarget Exercise exercise);
 }

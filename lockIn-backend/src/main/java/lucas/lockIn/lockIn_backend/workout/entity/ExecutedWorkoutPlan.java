@@ -1,7 +1,7 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,9 @@ import java.util.Set;
  * This class represents a workout plan executed during the workout itself,
  * which means it acts as an already executed state.
  */
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 public class ExecutedWorkoutPlan {
 

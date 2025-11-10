@@ -1,9 +1,7 @@
 package lucas.lockIn.lockIn_backend.workout.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 
 import java.time.Duration;
