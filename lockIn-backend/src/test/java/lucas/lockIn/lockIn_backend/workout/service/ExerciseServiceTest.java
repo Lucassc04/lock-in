@@ -1,7 +1,6 @@
-package lucas.lockIn.lockIn_backend.workout;
+package lucas.lockIn.lockIn_backend.workout.service;
 
 import lucas.lockIn.lockIn_backend.auth.entity.User;
-import lucas.lockIn.lockIn_backend.auth.repository.UserRepository;
 import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.ExerciseRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
@@ -9,7 +8,6 @@ import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
 import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
-import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,7 +70,7 @@ public class ExerciseServiceTest {
         when(exerciseRepository.save(any())).thenReturn(validExercise);
 
         //Act
-        ExerciseResponse response = exerciseService.createExercise(0L, request);
+        ExerciseResponse response = exerciseService.createExercise(request, 0L);
 
         //Assert
         assertThat(response)
@@ -89,7 +87,7 @@ public class ExerciseServiceTest {
             "the primary muscles.")
     void shouldCreateExerciseWithPrunedSecondaryMuscles(){
         //Arrange
-        validExercise.setSecondaryMuscles(validExercise.getPrimaryMuscles());
+        validExercise.setSecondaryMuscles(new HashSet<>(List.of()));
         ExerciseRequest request = new ExerciseRequest(
                 "Bench Press", validExercise.getPrimaryMuscles(), validExercise.getPrimaryMuscles(),null);
 
@@ -97,11 +95,11 @@ public class ExerciseServiceTest {
 
 
         //Act
-        ExerciseResponse response = exerciseService.createExercise(0L, request);
+        ExerciseResponse response = exerciseService.createExercise(request, 0L);
 
         //Assert
         assertThat(response)
-                .hasFieldOrPropertyWithValue("secondaryMuscles", Set.of());
+                .hasFieldOrPropertyWithValue("secondaryMuscles", new HashSet<>(List.of()));
 
     }
 
@@ -113,7 +111,7 @@ public class ExerciseServiceTest {
                 "Bench Press", validExercise.getPrimaryMuscles(), new HashSet<>(List.of(Muscle.MIDDLE_CHEST)),null);
 
         when(exerciseRepository.save(any())).thenReturn(validExercise);
-        exerciseService.createExercise(0L, request);
+        exerciseService.createExercise(request, 0L);
 
         //After the exercise was created, now update it
         User user = User.builder()
@@ -130,14 +128,14 @@ public class ExerciseServiceTest {
                 exercise.getPrimaryMuscles(), exercise.getSecondaryMuscles(),exercise.getDescription());
 
         when(exerciseRepository.save(any())).thenReturn(exercise);
-        when(exerciseRepository.findByIdAndUserId(user.getId(), validExercise.getId())).thenReturn(Optional.of(validExercise));
+        when(exerciseRepository.findByIdAndUserId(validExercise.getId(), user.getId())).thenReturn(Optional.of(validExercise));
 
         //Act
-        ExerciseResponse response = exerciseService.updateExercise(user.getId(), validExercise.getId(), request2);
+        ExerciseResponse response = exerciseService.updateExercise(validExercise.getId(), request2, user.getId());
 
         //Assert
         assertThat(response)
-                .hasFieldOrPropertyWithValue("primaryMuscles", Set.of(Muscle.SHORT_HEAD_TRICEPS, Muscle.MIDDLE_CHEST, Muscle.MEDIAL_HEAD_TRICEPS))
+                .hasFieldOrPropertyWithValue("primaryMuscles", new HashSet<>(List.of(Muscle.SHORT_HEAD_TRICEPS, Muscle.MIDDLE_CHEST, Muscle.MEDIAL_HEAD_TRICEPS)))
                 .hasFieldOrPropertyWithValue("name", "Dips");
     }
 

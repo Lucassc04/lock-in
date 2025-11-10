@@ -1,4 +1,4 @@
-package lucas.lockIn.lockIn_backend.workout;
+package lucas.lockIn.lockIn_backend.workout.service;
 
 import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
@@ -11,8 +11,6 @@ import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapper;
 import lucas.lockIn.lockIn_backend.workout.mapper.SeriesMapper;
 import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutMapper;
 import lucas.lockIn.lockIn_backend.workout.repository.*;
-import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
-import lucas.lockIn.lockIn_backend.workout.service.WorkoutService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -180,7 +178,7 @@ public class WorkoutServiceTest {
         ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), null, "Nice workout");
         WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime);
 
-        when(workoutPlanRepository.findByIdAndUserId(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUsers_Id(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
         when(exerciseService.findById(1L)).thenReturn(validExercise);
         when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
@@ -230,7 +228,7 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should start workout with plan")
     void shouldStartWorkoutWithPlan() {
-        when(workoutPlanRepository.findByIdAndUserId(any(), any())).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUsers_Id(any(), any())).thenReturn(Optional.of(validPlan));
         when(workoutRepository.save(any())).thenAnswer(invocation -> {
             Workout w = invocation.getArgument(0);
             w.setId(1L);

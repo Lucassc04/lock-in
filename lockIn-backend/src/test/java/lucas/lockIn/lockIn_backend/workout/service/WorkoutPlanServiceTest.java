@@ -1,6 +1,7 @@
-package lucas.lockIn.lockIn_backend.workout;
+package lucas.lockIn.lockIn_backend.workout.service;
 
 import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.mapper.UserMapper;
 import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.request.PlannedSeriesRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutPlanRequest;
@@ -11,8 +12,6 @@ import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
 import lucas.lockIn.lockIn_backend.workout.mapper.*;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
-import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
-import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +53,9 @@ public class WorkoutPlanServiceTest {
     @Spy
     private WorkoutPlanMapper workoutPlanMapper = Mappers.getMapper(WorkoutPlanMapper.class);
 
+    @Spy
+    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+
     @Mock
     private UserService userService;
 
@@ -72,6 +75,7 @@ public class WorkoutPlanServiceTest {
 
         ReflectionTestUtils.setField(workoutPlanMapper, "seriesMapper", seriesMapper);
         ReflectionTestUtils.setField(seriesMapper, "exerciseMapper", exerciseMapper);
+        ReflectionTestUtils.setField(workoutPlanMapper, "userMapper", userMapper);
 
         validExercise = Exercise.builder()
                 .id(1L)
@@ -86,7 +90,7 @@ public class WorkoutPlanServiceTest {
                 .name("Push Day")
                 .series(List.of(plannedSeries))
                 .creator(mockUser)
-                .users(Set.of(mockUser))
+                .users(new HashSet<>(List.of(mockUser)))
                 .build();
     }
 
@@ -139,15 +143,16 @@ public class WorkoutPlanServiceTest {
     @DisplayName("Should create a workout plan with series")
     void shouldCreateWorkoutPlan() {
         // Arrange
-        PlannedSeriesRequest plannedSeriesRequest = new PlannedSeriesRequest(1L, 3);
+        PlannedSeriesRequest plannedSeriesRequest = new PlannedSeriesRequest("Bench Press", 3);
         WorkoutPlanRequest request = new WorkoutPlanRequest("Push Day", List.of(plannedSeriesRequest));
 
-        when(exerciseService.findById(1L)).thenReturn(validExercise);
+
+        when(exerciseService.findByName("Bench Press")).thenReturn(validExercise);
         when(workoutPlanRepository.save(any())).thenReturn(validPlan);
         when(userService.findById(any())).thenReturn(mockUser);
 
         // Act
-        WorkoutPlanResponse response = workoutPlanService.createWorkoutPlan(mockUser.getId(), request);
+        WorkoutPlanResponse response = workoutPlanService.createWorkoutPlan(request, mockUser.getId());
 
         // Assert
         assertThat(response)
@@ -160,7 +165,7 @@ public class WorkoutPlanServiceTest {
     @DisplayName("Should update a workout plan")
     void shouldUpdateWorkoutPlan() {
         // Arrange
-        PlannedSeriesRequest seriesRequest = new PlannedSeriesRequest(1L, 4);
+        PlannedSeriesRequest seriesRequest = new PlannedSeriesRequest("Bench Press", 4);
         WorkoutPlanRequest request = new WorkoutPlanRequest("Updated Plan", List.of(seriesRequest));
         WorkoutPlan updatedPlan = WorkoutPlan.builder()
                 .id(1L)
@@ -168,12 +173,12 @@ public class WorkoutPlanServiceTest {
                 .series(List.of(new PlannedSeries(validExercise,4)))
                 .build();
 
-        when(workoutPlanRepository.findByIdAndUserId(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUsers_Id(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
         when(workoutPlanRepository.save(any())).thenReturn(updatedPlan);
-        when(exerciseService.findById(1L)).thenReturn(validExercise);
+        when(exerciseService.findByName("Bench Press")).thenReturn(validExercise);
 
         // Act
-        WorkoutPlanResponse response = workoutPlanService.updateWorkoutPlan(mockUser.getId(), 1L, request);
+        WorkoutPlanResponse response = workoutPlanService.updateWorkoutPlan(1L, request, mockUser.getId());
 
         // Assert
         assertThat(response)
@@ -186,10 +191,10 @@ public class WorkoutPlanServiceTest {
     void shouldDeleteWorkoutPlan() {
         // Arrange
         doNothing().when(workoutPlanRepository).delete(any());
-        when(workoutPlanRepository.findByIdAndUserId(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
+        when(workoutPlanRepository.findByIdAndUsers_Id(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
 
         // Act
-        workoutPlanService.deleteWorkoutPlan(mockUser.getId(), 1L);
+        workoutPlanService.deleteWorkoutPlan(1L, mockUser.getId());
 
         // Assert
         verify(workoutPlanRepository, times(1)).delete(any());
