@@ -116,18 +116,7 @@ public class WorkoutService {
         return mapper.toResponse(workout);
     }
 
-    /**
-     * Converts series requests from a WorkoutPlanExecutedDTO into Series entities.
-     * <p>
-     * This method processes both working series and warmup series requests (if present),
-     * retrieves the associated exercises, and creates the corresponding Series entities.
-     * The result is a unified set containing all executed series from the workout.
-     * </p>
-     *
-     * @param executedWorkoutPlanRequest the DTO containing working and warmup series requests
-     * @return a list of all Series entities executed in the workout
-     * @throws EntityNotFoundException if any exercise ID is not found
-     */
+
     private List<Series> convertSeriesRequestToEntities(ExecutedWorkoutPlanRequest executedWorkoutPlanRequest){
         List<Series> series = executedWorkoutPlanRequest.workingSeries().stream()
                 .map(this::fromRequest)
@@ -143,41 +132,15 @@ public class WorkoutService {
     }
 
 
-    /**
-     * Creates a WorkingSeries entity from a request DTO.
-     * <p>
-     * Constructs a new working series instance with the exercise reference and
-     * the weight and repetition values from the request.
-     * </p>
-     *
-     * @param request the DTO containing exercise id, weight and repetition data
-     * @return a new WorkingSeries instance
-     */
     private WorkingSeries fromRequest(WorkingSeriesRequest request) {
         int series = (request.series() == null) ? 1 : request.series();
         return new WorkingSeries(exerciseService.findById(request.exerciseId()), series, request.weight(), request.repetitions());
     }
 
-    /**
-     * Creates a WarmupSeries entity from a request DTO.
-     * <p>
-     * Constructs a new warmup series instance with the exercise reference and
-     * the weight and repetition values from the request.
-     * </p>
-     *
-     * @param request the DTO containing exercise id, weight and repetition data
-     * @return a new WarmupSeries instance
-     */
     private WarmupSeries fromRequest(WarmupSeriesRequest request) {
         return new WarmupSeries(exerciseService.findById(request.exerciseId()), 1, request.weight(), request.repetitions());
     }
 
-    /**
-     * If a workout by the user does not have a finish time, means it has not been finished,
-     * i.e., it is still ongoing
-     * @param userId the user id
-     * @return true if the user has an ongoing workout
-     */
     private boolean userHasOngoingWorkout(Long userId) {
         return workoutRepository.findOngoingWorkout(userId).isPresent();
     }

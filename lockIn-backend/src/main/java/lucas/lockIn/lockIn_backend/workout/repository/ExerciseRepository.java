@@ -1,5 +1,6 @@
 package lucas.lockIn.lockIn_backend.workout.repository;
 
+import jakarta.validation.constraints.NotBlank;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,6 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
     Optional<Exercise> findByIdAndUserId(@Param("exerciseId") Long exerciseId, @Param("userId") Long userId);
 
     Optional<Exercise> findByName(@Param("name") String name);
+
+    Optional<Exercise> findByNameAndCreatorId(@NotBlank String name, Long userId);
 }

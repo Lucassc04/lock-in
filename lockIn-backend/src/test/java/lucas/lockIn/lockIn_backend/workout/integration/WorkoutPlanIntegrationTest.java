@@ -10,6 +10,8 @@ import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
+import lucas.lockIn.lockIn_backend.workout.exceptions.ExistingEntity;
+import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -150,5 +153,31 @@ public class WorkoutPlanIntegrationTest {
         assertThat(wpList)
                 .isNotNull()
                 .hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Throw Error when updating or deleting")
+    void shouldThrowOwnershipError(){
+        UserPrincipal newUser = userService.createUser(new RegisterRequest(
+                "Some1", "Body", "some1body@gmail.com", "justapassword"));
+        WorkoutPlanRequest workoutPlanRequest = new WorkoutPlanRequest("Push A", plannedSeriesRequests);
+        WorkoutPlanResponse response = workoutPlanService.createWorkoutPlan(workoutPlanRequest, newUser.getUserId());
+        workoutPlanService.subscribeToWorkoutPlan(response.id(), userPrincipal.getUserId());
+
+        assertThatThrownBy(() -> workoutPlanService.deleteWorkoutPlan(response.id(), userPrincipal.getUserId()))
+                .isInstanceOf(OwnershipError.class);
+        assertThatThrownBy(() -> workoutPlanService.updateWorkoutPlan(
+                response.id(), workoutPlanRequest, userPrincipal.getUserId()))
+                .isInstanceOf(OwnershipError.class);
+    }
+
+    @Test
+    @DisplayName("Throw Existing Workout Error")
+    void shouldThrowExistingWorkoutError(){
+        WorkoutPlanRequest workoutPlanRequest = new WorkoutPlanRequest("Push A", plannedSeriesRequests);
+        workoutPlanService.createWorkoutPlan(workoutPlanRequest, userPrincipal.getUserId());
+
+        assertThatThrownBy(() -> workoutPlanService.createWorkoutPlan(workoutPlanRequest, userPrincipal.getUserId()))
+                .isInstanceOf(ExistingEntity.class);
     }
 }

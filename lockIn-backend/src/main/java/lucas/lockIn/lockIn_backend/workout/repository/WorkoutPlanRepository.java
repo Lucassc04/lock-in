@@ -1,5 +1,6 @@
 package lucas.lockIn.lockIn_backend.workout.repository;
 
+import lucas.lockIn.lockIn_backend.auth.entity.User;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,6 @@ public interface WorkoutPlanRepository extends JpaRepository<WorkoutPlan,Long> {
     List<WorkoutPlan> findAllByUserId(@Param("userId") Long userId);
 
     Optional<WorkoutPlan> findByIdAndUsers_Id(Long workoutPlanId, Long userId);
+
+    Optional<WorkoutPlan> findByNameAndCreatorId(String name, Long id);
 }

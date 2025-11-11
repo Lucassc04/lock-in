@@ -9,6 +9,7 @@ import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutPlanResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.PlannedSeries;
 import lucas.lockIn.lockIn_backend.workout.entity.WorkoutPlan;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.ExistingEntity;
 import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutPlanMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.WorkoutPlanRepository;
@@ -51,6 +52,10 @@ public class WorkoutPlanService {
 
     public WorkoutPlanResponse createWorkoutPlan(WorkoutPlanRequest workoutPlanRequest, Long userId) {
         WorkoutPlan workoutPlan = new WorkoutPlan();
+
+        if(workoutPlanRepository.findByNameAndCreatorId(workoutPlanRequest.name(), userId).isPresent()) {
+            throw new ExistingEntity("Workout Plan already exists with the name " + workoutPlanRequest.name());
+        }
 
         User user =  userService.findById(userId);
         workoutPlan.setCreator(user);

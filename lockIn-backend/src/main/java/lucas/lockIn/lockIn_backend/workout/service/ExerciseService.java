@@ -9,6 +9,7 @@ import lucas.lockIn.lockIn_backend.workout.dto.response.ExerciseResponse;
 import lucas.lockIn.lockIn_backend.workout.entity.Exercise;
 import lucas.lockIn.lockIn_backend.workout.entity.Muscle;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
+import lucas.lockIn.lockIn_backend.workout.exceptions.ExistingEntity;
 import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapperImpl;
 import lucas.lockIn.lockIn_backend.workout.repository.ExerciseRepository;
@@ -54,6 +55,13 @@ public class ExerciseService {
     public ExerciseResponse createExercise(ExerciseRequest exerciseDTO, Long userId) {
         Exercise exercise = new Exercise();
 
+        if(exerciseRepository.findByNameAndCreatorId(exerciseDTO.name(), userId).isPresent()){
+            throw new ExistingEntity("Exercise already exists with the name "  +  exerciseDTO.name());
+        }
+
+        User user = userService.findById(userId);
+        exercise.setCreator(user);
+
         exercise.setDescription(exerciseDTO.description());
         exercise.setName(exerciseDTO.name());
         exercise.setPrimaryMuscles(exerciseDTO.primaryMuscles());
@@ -62,9 +70,6 @@ public class ExerciseService {
             exerciseDTO.secondaryMuscles().removeAll(exerciseDTO.primaryMuscles());
             exercise.setSecondaryMuscles(exerciseDTO.secondaryMuscles());
         }
-        //Update user and add creator
-        User user = userService.findById(userId);
-        exercise.setCreator(user);
 
         Exercise createdExercise = exerciseRepository.save(exercise);
 
