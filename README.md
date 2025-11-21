@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project was created to apply university learnings while exploring new concepts. Every architectural decision was intentionally made to solve a personal need: while excellent apps exist for tracking running progress (like Strava), I never found a truly effective gym tracking solution. This application aims to fill that gap, with plans to grow and add features that genuinely help track workout progress.
+This project was created to apply university learnings while exploring new concepts. Every architectural decision was intentionally made to solve a personal need: while excellent apps exist for tracking running progress (like Strava), I never found a truly effective gym tracking solution. This application aims to fill that gap, with plans to grow and add features that genuinely help track workout progress.  
 This project helped me learn a lot and add some real experience to creating something. Had to learn how to better write tests, implement other dependencies such as MapStruct and JWT Authentication, and overall learn how to write cleaner and readable code.
 ## Tech Stack
 
@@ -11,13 +11,31 @@ This project helped me learn a lot and add some real experience to creating some
 - **Authentication**: JWT with Refresh and Access Tokens
 
 ## Getting Started
-
-Clone the repository and start the application:
-
+If you wish to start without docker, you can run with Spring which will use an H2 Database, with some default .env values  
+```yaml
+    jwt:
+        secret: /Gt7+Oqe2oIz5s+8gAaaf7vuKf7K9Qgp5kMc6vrzZ3g=
+        expiration: 90000
+    
+    cookie:
+        expiration: 106400
+```
+With docker, clone the repository and before starting the application:
+  
+Create an .env file with needed values:
+```.dotenv
+JWT_SECRET, a 32 byte BASE 64 secret
+JWT_EXPIRATION, any numerical value, in seconds
+COOKIE_EXPIRATION, any numerical value, bigger than JWT_EXPIRATION
+    
+DB_USER, database username
+DB_PASSWORD, database password
+```
+Now run the command in the terminal
 ```bash
 docker compose up --build
 ```
-
+It is now up an running!
 ## API Documentation
 
 ### Authentication (`/api/v1/auth`)
