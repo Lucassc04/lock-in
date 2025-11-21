@@ -35,7 +35,7 @@ Now run the command in the terminal
 ```bash
 docker compose up --build
 ```
-It is now up an running!
+It is now up and running!
 ## API Documentation
 
 ### Authentication (`/api/v1/auth`)
