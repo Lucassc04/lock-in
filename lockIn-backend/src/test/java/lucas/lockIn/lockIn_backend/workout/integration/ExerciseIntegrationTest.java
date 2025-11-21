@@ -11,6 +11,7 @@ import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 @Transactional
 public class ExerciseIntegrationTest {
 
@@ -31,7 +32,7 @@ public class ExerciseIntegrationTest {
     private UserPrincipal userPrincipal;
     private ExerciseRequest exerciseRequest;
 
-    @BeforeAll
+    @BeforeEach
     void setUp() {
         RegisterRequest registerRequest = new RegisterRequest(
                 "No", "Body", "nobody@gmail.com", "justamockpassword");

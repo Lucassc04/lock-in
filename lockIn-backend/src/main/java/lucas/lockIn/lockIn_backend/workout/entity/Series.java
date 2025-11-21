@@ -17,7 +17,7 @@ public abstract class Series {
     @JoinColumn(name = "exercise_id")
     protected Exercise exercise;
 
-    protected int series;
+    protected Integer series;
 
     public Series() {}
 

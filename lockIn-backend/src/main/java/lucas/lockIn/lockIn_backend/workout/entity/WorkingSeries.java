@@ -11,7 +11,7 @@ public class WorkingSeries extends Series {
 
     private Double weight;
 
-    private int repetitions;
+    private Integer repetitions;
 
     public WorkingSeries() {}
 

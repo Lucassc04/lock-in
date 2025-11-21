@@ -21,6 +21,8 @@ public interface ExerciseMapper {
 
     ExecutedExerciseResponse toExecutedExerciseResponse(Exercise entity);
 
+    Exercise toEntity(ExecutedExerciseResponse dto);
+
     List<ExerciseResponse> toResponseDto(List<Exercise> entities);
 
     List<Exercise> toEntity(List<ExerciseResponse> dtos);

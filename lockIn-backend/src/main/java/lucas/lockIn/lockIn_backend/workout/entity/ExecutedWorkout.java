@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * This class represents a workout plan executed during the workout itself,
@@ -15,7 +14,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @Entity
-public class ExecutedWorkoutPlan {
+public class ExecutedWorkout {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +27,7 @@ public class ExecutedWorkoutPlan {
     @OneToMany(cascade = CascadeType.ALL)
     private List<WarmupSeries> warmupSeries = new ArrayList<>();
 
-    public ExecutedWorkoutPlan(){}
+    public ExecutedWorkout(){}
 
     public void setSeries(List<Series> series) {
         for (Series s : series) {

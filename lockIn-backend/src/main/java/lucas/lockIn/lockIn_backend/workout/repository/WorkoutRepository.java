@@ -25,9 +25,9 @@ public interface WorkoutRepository extends JpaRepository<Workout,Long> {
 
     @Query("""
        SELECT w
-       FROM Workout w 
+       FROM Workout w
        JOIN w.user u
-       WHERE w.user.id = :userId AND w.finishTime IS NULL     
+       WHERE w.user.id = :userId AND w.finishTime IS NULL
         """)
     Optional<Workout> findOngoingWorkout(Long userId);
 

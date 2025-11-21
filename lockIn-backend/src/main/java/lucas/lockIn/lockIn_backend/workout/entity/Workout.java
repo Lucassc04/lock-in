@@ -21,7 +21,7 @@ public class Workout {
     private WorkoutPlan workoutPlan;
 
     @OneToOne
-    private ExecutedWorkoutPlan executedWorkoutPlan;
+    private ExecutedWorkout executedWorkout;
 
     private LocalDateTime startTime;
 

@@ -5,5 +5,5 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record ExecutedWorkoutPlanRequest(@NotEmpty List<WorkingSeriesRequest> workingSeries, @Nullable List<WarmupSeriesRequest> warmupSeries, @Nullable String notes) {
+public record ExecutedWorkoutRequest(@NotEmpty List<WorkingSeriesRequest> workingSeries, @Nullable List<WarmupSeriesRequest> warmupSeries) {
 }

@@ -8,13 +8,13 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {ExecutedWorkoutPlanMapper.class})
+@Mapper(componentModel = "spring", uses = {ExecutedWorkoutMapper.class, WorkoutPlanMapper.class})
 public interface WorkoutMapper {
 
     WorkoutResponse toResponse(Workout workout);
-    @Mapping(target = "notes", ignore = true)
+
     @Mapping(target = "workoutPlan", ignore = true)
-    @Mapping(target = "duration", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Workout toEntity(WorkoutResponse response);
 
     CurrentWorkoutDTO toCurrent(Workout workout);

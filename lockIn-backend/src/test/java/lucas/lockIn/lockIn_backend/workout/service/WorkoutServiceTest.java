@@ -1,15 +1,14 @@
 package lucas.lockIn.lockIn_backend.workout.service;
 
 import lucas.lockIn.lockIn_backend.auth.entity.User;
+import lucas.lockIn.lockIn_backend.auth.mapper.UserMapper;
+import lucas.lockIn.lockIn_backend.auth.service.UserService;
 import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
 import lucas.lockIn.lockIn_backend.workout.dto.request.*;
 import lucas.lockIn.lockIn_backend.workout.dto.response.*;
 import lucas.lockIn.lockIn_backend.workout.entity.*;
 import lucas.lockIn.lockIn_backend.workout.exceptions.EntityNotFoundException;
-import lucas.lockIn.lockIn_backend.workout.mapper.ExecutedWorkoutPlanMapper;
-import lucas.lockIn.lockIn_backend.workout.mapper.ExerciseMapper;
-import lucas.lockIn.lockIn_backend.workout.mapper.SeriesMapper;
-import lucas.lockIn.lockIn_backend.workout.mapper.WorkoutMapper;
+import lucas.lockIn.lockIn_backend.workout.mapper.*;
 import lucas.lockIn.lockIn_backend.workout.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,13 +43,16 @@ public class WorkoutServiceTest {
     private WorkoutPlanRepository workoutPlanRepository;
 
     @Mock
-    private WorkoutPlanExecutedRepository workoutPlanExecutedRepository;
+    private ExecutedWorkoutRepository executedWorkoutRepository;
 
     @Mock
     private ExerciseService exerciseService;
 
+    @Mock
+    private UserService userService;
+
     @Spy
-    private ExecutedWorkoutPlanMapper executedWorkoutPlanMapper = Mappers.getMapper(ExecutedWorkoutPlanMapper.class);
+    private ExecutedWorkoutMapper executedWorkoutMapper = Mappers.getMapper(ExecutedWorkoutMapper.class);
 
     @Spy
     private SeriesMapper seriesMapper = Mappers.getMapper(SeriesMapper.class);
@@ -60,6 +62,12 @@ public class WorkoutServiceTest {
 
     @Spy
     private WorkoutMapper workoutMapper = Mappers.getMapper(WorkoutMapper.class);
+
+    @Spy
+    private WorkoutPlanMapper workoutPlanMapper = Mappers.getMapper(WorkoutPlanMapper.class);
+
+    @Spy
+    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @InjectMocks
     private WorkoutService workoutService;
@@ -73,9 +81,12 @@ public class WorkoutServiceTest {
 
     @BeforeEach
     public void setUp() {
-        ReflectionTestUtils.setField(workoutMapper, "executedWorkoutPlanMapper", executedWorkoutPlanMapper);
-        ReflectionTestUtils.setField(executedWorkoutPlanMapper, "seriesMapper", seriesMapper);
+        ReflectionTestUtils.setField(workoutMapper, "executedWorkoutMapper", executedWorkoutMapper);
+        ReflectionTestUtils.setField(executedWorkoutMapper, "seriesMapper", seriesMapper);
         ReflectionTestUtils.setField(seriesMapper, "exerciseMapper", exerciseMapper);
+        ReflectionTestUtils.setField(workoutMapper, "workoutPlanMapper", workoutPlanMapper);
+        ReflectionTestUtils.setField(workoutPlanMapper, "seriesMapper", seriesMapper);
+        ReflectionTestUtils.setField(workoutPlanMapper, "userMapper", userMapper);
 
         mockUser = User.builder()
                 .id(0L)
@@ -95,17 +106,18 @@ public class WorkoutServiceTest {
                 .name("Push Day")
                 .build();
 
-        ExecutedWorkoutPlan executedWorkoutPlan = new ExecutedWorkoutPlan();
-        executedWorkoutPlan.setId(1L);
+        ExecutedWorkout executedWorkout = new ExecutedWorkout();
+        executedWorkout.setId(1L);
 
         validWorkout = new Workout();
         validWorkout.setId(1L);
         validWorkout.setUser(mockUser);
         validWorkout.setWorkoutPlan(validPlan);
-        validWorkout.setExecutedWorkoutPlan(executedWorkoutPlan);
+        validWorkout.setExecutedWorkout(executedWorkout);
         validWorkout.setStartTime(startTime);
         validWorkout.setFinishTime(finishTime);
         validWorkout.setDuration(Duration.between(startTime, finishTime));
+        validWorkout.setNotes("Nice workout");
     }
 
     @Test
@@ -174,13 +186,13 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should create workout with plan")
     void shouldPostWorkoutWithPlan() {
-        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(1L, 50.0, 10, 3);
-        ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), null, "Nice workout");
-        WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime);
+        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(validExercise.getName(), 50.0, 10, 3);
+        ExecutedWorkoutRequest executedRequest = new ExecutedWorkoutRequest(List.of(workingSeriesRequest), null);
+        WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime, "Nice workout");
 
         when(workoutPlanRepository.findByIdAndUsers_Id(validPlan.getId(), mockUser.getId())).thenReturn(Optional.of(validPlan));
-        when(exerciseService.findById(1L)).thenReturn(validExercise);
-        when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(exerciseService.findByName(any())).thenReturn(validExercise);
+        when(executedWorkoutRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
         WorkoutResponse response = workoutService.postWorkout(workoutRequest, 1L, mockUser.getId());
@@ -193,12 +205,12 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should create workout without plan (null planId)")
     void shouldPostWorkoutWithoutPlan() {
-        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(1L, 40.0, 12, 3);
-        ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), null, null);
-        WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime);
+        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(validExercise.getName(), 40.0, 12, 3);
+        ExecutedWorkoutRequest executedRequest = new ExecutedWorkoutRequest(List.of(workingSeriesRequest), null);
+        WorkoutRequest workoutRequest = new WorkoutRequest(executedRequest, startTime, finishTime, null);
 
-        when(exerciseService.findById(1L)).thenReturn(validExercise);
-        when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(exerciseService.findByName(any())).thenReturn(validExercise);
+        when(executedWorkoutRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
         WorkoutResponse response = workoutService.postWorkout(workoutRequest, null,  mockUser.getId());
@@ -217,6 +229,7 @@ public class WorkoutServiceTest {
             return w;
         });
         when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.empty());
+        when(userService.findById(any())).thenReturn(mockUser);
 
         CurrentWorkoutDTO dto = workoutService.startWorkout(null, mockUser.getId());
 
@@ -234,6 +247,7 @@ public class WorkoutServiceTest {
             w.setId(1L);
             return w;
         });
+        when(userService.findById(any())).thenReturn(mockUser);
 
         CurrentWorkoutDTO dto = workoutService.startWorkout(validPlan.getId(), mockUser.getId());
 
@@ -245,13 +259,13 @@ public class WorkoutServiceTest {
     @Test
     @DisplayName("Should finish workout successfully")
     void shouldFinishWorkout() {
-        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(1L, 45.0, 8, 3);
-        WarmupSeriesRequest warmupSeriesRequest = new WarmupSeriesRequest(1L, 20.0, 10, 1);
-        ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(workingSeriesRequest), List.of(warmupSeriesRequest), "Good session");
+        WorkingSeriesRequest workingSeriesRequest = new WorkingSeriesRequest(validExercise.getName(), 45.0, 8, 3);
+        WarmupSeriesRequest warmupSeriesRequest = new WarmupSeriesRequest(validExercise.getName(), 20.0, 10, 1);
+        ExecutedWorkoutRequest executedRequest = new ExecutedWorkoutRequest(List.of(workingSeriesRequest), List.of(warmupSeriesRequest));
 
         when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.of(validWorkout));
-        when(exerciseService.findById(1L)).thenReturn(validExercise);
-        when(workoutPlanExecutedRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(exerciseService.findByName(any())).thenReturn(validExercise);
+        when(executedWorkoutRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(workoutRepository.save(any())).thenReturn(validWorkout);
 
         WorkoutResponse response = workoutService.finishWorkout(mockUser.getId(), executedRequest);
@@ -266,7 +280,7 @@ public class WorkoutServiceTest {
     void shouldThrowWhenFinishingNonexistentWorkout() {
         when(workoutRepository.findOngoingWorkout(any())).thenReturn(Optional.empty());
 
-        ExecutedWorkoutPlanRequest executedRequest = new ExecutedWorkoutPlanRequest(List.of(), null, null);
+        ExecutedWorkoutRequest executedRequest = new ExecutedWorkoutRequest(List.of(), null);
 
         assertThatThrownBy(() -> workoutService.finishWorkout(99L, executedRequest))
                 .isInstanceOf(EntityNotFoundException.class)

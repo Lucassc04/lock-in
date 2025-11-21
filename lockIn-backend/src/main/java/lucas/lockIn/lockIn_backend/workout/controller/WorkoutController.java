@@ -4,9 +4,9 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lucas.lockIn.lockIn_backend.auth.entity.UserPrincipal;
+import lucas.lockIn.lockIn_backend.workout.dto.request.ExecutedWorkoutRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.request.WorkoutRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.CurrentWorkoutDTO;
-import lucas.lockIn.lockIn_backend.workout.dto.request.ExecutedWorkoutPlanRequest;
 import lucas.lockIn.lockIn_backend.workout.dto.response.WorkoutResponse;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutService;
 import org.springframework.http.ResponseEntity;
@@ -49,9 +49,9 @@ public class WorkoutController {
     }
 
     @PatchMapping("/finish")
-    public ResponseEntity<WorkoutResponse> finishWorkout(@RequestBody @Valid ExecutedWorkoutPlanRequest executedWorkoutPlanRequest,
+    public ResponseEntity<WorkoutResponse> finishWorkout(@RequestBody @Valid ExecutedWorkoutRequest executedWorkoutRequest,
                                                          @AuthenticationPrincipal UserPrincipal user) {
-        WorkoutResponse workout = workoutService.finishWorkout(user.getUserId(), executedWorkoutPlanRequest);
+        WorkoutResponse workout = workoutService.finishWorkout(user.getUserId(), executedWorkoutRequest);
         return ResponseEntity.ok(workout);
     }
 

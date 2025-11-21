@@ -22,7 +22,6 @@ import java.util.List;
 public class ExerciseController {
 
     private final ExerciseService exerciseService;
-    private final UserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getExercise(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {

@@ -15,12 +15,10 @@ import lucas.lockIn.lockIn_backend.workout.exceptions.OwnershipError;
 import lucas.lockIn.lockIn_backend.workout.service.ExerciseService;
 import lucas.lockIn.lockIn_backend.workout.service.WorkoutPlanService;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -32,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 @Transactional
 public class WorkoutPlanIntegrationTest {
 
@@ -48,7 +46,7 @@ public class WorkoutPlanIntegrationTest {
     private List<PlannedSeriesRequest>  plannedSeriesRequests = new ArrayList<>();
     private UserPrincipal userPrincipal;
 
-    @BeforeAll
+    @BeforeEach
     void setup(){
         userPrincipal = userService.createUser(new RegisterRequest(
                 "No", "Body", "nobody@gmail.com", "justapassword"));
